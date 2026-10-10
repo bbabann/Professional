@@ -22,10 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const title = panel.querySelector('.panel-title');
   const openLink = panel.querySelector('.panel-open');
   let active = null;
+  frame.addEventListener('load', () => frame.classList.add('ready'));
 
   function open(row) {
     const href = row.getAttribute('href');
-    frame.src = href + (href.includes('?') ? '&' : '?') + 'embed';
+    const next = href + (href.includes('?') ? '&' : '?') + 'embed';
+    if (!frame.getAttribute('src') || !frame.src.endsWith(next)) {
+      frame.classList.remove('ready'); // 새 콘텐츠는 로드 후 페이드인
+      frame.src = next;
+    }
     openLink.href = href;
     title.textContent = row.querySelector('.title').firstChild.textContent.trim();
     if (active) active.removeAttribute('aria-current');
@@ -39,8 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.remove('split');
     panel.setAttribute('aria-hidden', 'true');
     if (active) active.removeAttribute('aria-current');
-    active = null;
-    frame.removeAttribute('src');
+    active = null; // src는 유지: 닫히는 동안 내용이 비지 않고, 같은 항목을 다시 열면 재로딩 없음
   }
 
   document.addEventListener('click', (e) => {
