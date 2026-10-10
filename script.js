@@ -1,7 +1,28 @@
 // embed 모드(패널 안에서 열린 페이지)면 내비/푸터를 숨김. 깜빡임 방지를 위해 <head>에서 즉시 실행
 if (new URLSearchParams(location.search).has('embed')) document.documentElement.classList.add('embed');
 
+function initCompare(stage) {
+  const fig = stage.parentElement;
+  let dragging = false;
+  const set = (pct) => {
+    pct = Math.max(0, Math.min(100, pct));
+    fig.style.setProperty('--pos', pct + '%');
+    stage.setAttribute('aria-valuenow', Math.round(pct));
+  };
+  const fromEvent = (e) => { const r = stage.getBoundingClientRect(); set(((e.clientX - r.left) / r.width) * 100); };
+  stage.addEventListener('pointerdown', (e) => { dragging = true; stage.setPointerCapture(e.pointerId); fromEvent(e); });
+  stage.addEventListener('pointermove', (e) => { if (dragging) fromEvent(e); });
+  stage.addEventListener('pointerup', () => { dragging = false; });
+  stage.addEventListener('pointercancel', () => { dragging = false; });
+  stage.addEventListener('keydown', (e) => {
+    const cur = Number(stage.getAttribute('aria-valuenow'));
+    if (e.key === 'ArrowLeft') { set(cur - 5); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { set(cur + 5); e.preventDefault(); }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.compare-stage').forEach(initCompare);
   if (document.documentElement.classList.contains('embed')) return;
 
   const wide = window.matchMedia('(min-width: 1100px)');

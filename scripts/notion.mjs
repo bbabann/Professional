@@ -66,6 +66,29 @@ async function saveImage(url, ctx) {
   }
 }
 
+
+// 임베드 URL → iframe 주소 (Figma/YouTube/Vimeo는 임베드용 주소로 변환, 그 외 https는 그대로)
+function embedSrc(raw = '') {
+  let u;
+  try { u = new URL(raw); } catch { return null; }
+  if (u.protocol !== 'https:') return null;
+  const host = u.hostname.replace(/^www\./, '');
+  if (host === 'figma.com') return `https://www.figma.com/embed?embed_host=share&url=${encodeURIComponent(raw)}`;
+  if (host === 'youtube.com' || host === 'youtu.be') {
+    const id = host === 'youtu.be' ? u.pathname.slice(1) : u.searchParams.get('v') || u.pathname.split('/').pop();
+    return id ? `https://www.youtube.com/embed/${encodeURIComponent(id)}` : null;
+  }
+  if (host === 'vimeo.com') return `https://player.vimeo.com/video/${encodeURIComponent(u.pathname.split('/').pop())}`;
+  return raw;
+}
+const embedHtml = (src, caption) =>
+  `<figure><iframe class="embed-frame" src="${esc(src)}" loading="lazy" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>${caption ? `<figcaption>${esc(caption)}</figcaption>` : ''}</figure>\n`;
+
+// 캡션이 '@compare'로 시작하는 연속된 이미지 2장 → Before/After 슬라이더
+const COMPARE = /^@compare\b\s*/i;
+const isCompareImage = (b) => b?.type === 'image' && COMPARE.test(plain(b.image.caption));
+const imageUrl = (d) => (d.type === 'external' ? d.external.url : d.file.url);
+
 async function children(token, id) {
   const blocks = await paginate(token, `/blocks/${id}/children`);
   for (const b of blocks) if (b.has_children) b.children = await children(token, b.id);
@@ -103,9 +126,27 @@ async function renderBlocks(blocks = [], ctx) {
       case 'toggle': html += `<details><summary>${richText(d.rich_text)}</summary>${await inner()}</details>\n`; break;
       case 'bookmark': case 'link_preview': html += `<p><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.url)}</a></p>\n`; break;
       case 'image': {
-        const src = await saveImage(d.type === 'external' ? d.external.url : d.file.url, ctx);
-        const cap = plain(d.caption);
+        if (isCompareImage(b) && isCompareImage(blocks[i + 1])) {
+          const [a, c] = [b, blocks[i + 1]];
+          const labelA = plain(a.image.caption).replace(COMPARE, '') || 'As-is';
+          const labelC = plain(c.image.caption).replace(COMPARE, '') || 'To-be';
+          const [srcA, srcC] = [await saveImage(imageUrl(a.image), ctx), await saveImage(imageUrl(c.image), ctx)];
+          html += `<figure class="compare" style="--pos:50%"><div class="compare-stage" tabindex="0" role="slider" aria-label="${esc(labelA)} / ${esc(labelC)} 비교" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">` +
+            `<img class="compare-before" src="${esc(srcA)}" alt="${esc(labelA)}" loading="lazy"><img class="compare-after" src="${esc(srcC)}" alt="${esc(labelC)}" loading="lazy">` +
+            `<span class="compare-label compare-label-l">${esc(labelA)}</span><span class="compare-label compare-label-r">${esc(labelC)}</span><span class="compare-handle"></span></div></figure>\n`;
+          i++; // 두 번째 이미지는 소비됨
+          break;
+        }
+        const src = await saveImage(imageUrl(d), ctx);
+        const cap = plain(d.caption).replace(COMPARE, '');
         html += `<figure><img src="${esc(src)}" alt="${esc(cap)}" loading="lazy">${cap ? `<figcaption>${richText(d.caption)}</figcaption>` : ''}</figure>\n`;
+        break;
+      }
+      case 'embed': case 'video': {
+        const url = t === 'video' ? (d.type === 'external' ? d.external.url : null) : d.url;
+        const src = embedSrc(url);
+        if (src) html += embedHtml(src, plain(d.caption));
+        else console.warn(`  ! ${t} skipped (https 외부 링크만 지원): ${url || 'file'}`);
         break;
       }
       default: console.warn(`  ! unsupported block type skipped: ${t}`);

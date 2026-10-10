@@ -48,5 +48,9 @@ NOTION_TOKEN=secret_xxx NOTION_DATABASE_ID=xxxx node scripts/build.mjs
 ## 지원하는 Notion 블록
 문단, 제목(1~3), 글머리/번호 목록(중첩), 체크리스트, 인용, 콜아웃, 코드, 구분선, 토글, 이미지(빌드 시 내려받아 저장 — Notion 파일 URL은 1시간 후 만료됨), 북마크. 그 외 블록은 건너뛰고 빌드 로그에 경고를 남깁니다.
 
+## 인터랙션 (Notion에서 쓰는 법)
+- **Before/After 슬라이더**: 이미지 블록 2개를 연달아 넣고 캡션을 `@compare As-is`, `@compare To-be`로 작성 (`@compare` 뒤 글자가 라벨. 비우면 As-is / To-be). 마우스·터치 드래그, 키보드 ←/→ 지원.
+- **임베드**: Notion에서 `/embed`(또는 `/video`)로 링크를 넣으면 iframe으로 표시. Figma 프로토타입·YouTube·Vimeo는 자동으로 임베드 주소로 변환. `https` 링크만 지원. (북마크로 붙이면 일반 링크로만 나옴)
+
 ## 폰트
 `<html data-font="pretendard|suite">` 로 전환 (비교용). 헤드라인만 Newsreader.

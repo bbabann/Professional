@@ -104,3 +104,17 @@ footer{padding:64px 0 40px;color:var(--muted-foreground);font-size:.85rem}
 .embed .wrap{max-width:none;padding:0 24px}
 .embed{scrollbar-width:none}                    /* 스크롤바가 폭을 차지해 정렬이 틀어지지 않게 숨김(스크롤은 그대로 동작) */
 .embed::-webkit-scrollbar{display:none}
+
+/* embed(Figma/영상) */
+.prose .embed-frame{display:block;width:100%;aspect-ratio:16/10;border:1px solid var(--border);border-radius:var(--radius);background:var(--muted)}
+
+/* Before/After 슬라이더: 포인터로 드래그, 키보드 ←/→ 지원 */
+.compare{margin:24px 0}
+.compare-stage{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:var(--radius);cursor:ew-resize;touch-action:pan-y;user-select:none;outline:none}
+.compare-stage:focus-visible{box-shadow:0 0 0 2px var(--foreground)}
+.compare-stage img{display:block;width:100%;pointer-events:none}
+.compare-stage .compare-after{position:absolute;inset:0;height:100%;object-fit:cover;clip-path:inset(0 0 0 var(--pos))}
+.compare-handle{position:absolute;top:0;bottom:0;left:var(--pos);width:2px;margin-left:-1px;background:var(--background);box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.compare-handle::after{content:"";position:absolute;top:50%;left:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;background:var(--background);box-shadow:0 0 0 1px var(--border),0 1px 4px rgba(0,0,0,.2)}
+.compare-label{position:absolute;top:12px;padding:0 10px;border-radius:999px;background:var(--background);color:var(--foreground);font-size:.75rem;line-height:22px;opacity:.9;pointer-events:none}
+.compare-label-l{left:12px}.compare-label-r{right:12px}
