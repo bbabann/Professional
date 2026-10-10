@@ -3,6 +3,7 @@
   --background:#fff;--foreground:#09090b;
   --muted:#f4f4f5;--muted-foreground:#71717a;
   --border:#e4e4e7;--radius:.5rem;
+  --bar-h:64px; /* 상단 내비와 패널 바가 공유하는 높이 */
   --ease:cubic-bezier(.32,.72,0,1);--dur:.45s;--panel:66.667vw; /* 패널 폭: 좌 1 : 우 2 */ /* Vaul/iOS 스타일 이징 */
   --font-sans:"Pretendard Variable",Pretendard,-apple-system,"Noto Sans KR",sans-serif;
   --font-serif:"Newsreader","Times New Roman",serif; /* 영문 타이포 포인트용 */
@@ -21,7 +22,7 @@ a{color:inherit;text-decoration:none}
 .icon{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
 
 /* header */
-.nav{display:flex;justify-content:space-between;align-items:center;padding:28px 0}
+.nav{display:flex;justify-content:space-between;align-items:center;height:var(--bar-h)}
 .nav .name{font-weight:600}
 .nav nav{display:flex;gap:20px;color:var(--muted-foreground)}
 .nav nav a:hover,.nav nav a[aria-current]{color:var(--foreground)}
@@ -33,7 +34,7 @@ h2{font-size:.8rem;font-weight:500;color:var(--muted-foreground);margin:0 0 12px
 p{margin:0 0 16px}
 .muted{color:var(--muted-foreground)}
 .section{padding:40px 0 0}
-.hero{padding-top:56px}
+.hero{padding-top:72px}
 
 /* rows: 작업/글 공통 리스트 */
 .rows{border-top:1px solid var(--border)}
@@ -73,8 +74,8 @@ footer{padding:64px 0 40px;color:var(--muted-foreground);font-size:.85rem}
   body.split{padding-right:var(--panel)}
   .panel{display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;width:var(--panel);background:var(--background);border-left:1px solid var(--border);transform:translateX(100%);visibility:hidden;transition:transform var(--dur) var(--ease),visibility 0s linear var(--dur);will-change:transform;z-index:20}
   body.split .panel{transform:none;visibility:visible;transition:transform var(--dur) var(--ease),visibility 0s}
-  .panel-bar{display:flex;align-items:center;gap:4px;padding:10px 12px 10px 20px;border-bottom:1px solid var(--border)}
-  .panel-title{flex:1;font-size:.875rem;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .panel-bar{display:flex;align-items:center;gap:4px;height:var(--bar-h);padding:0 16px 0 24px;box-shadow:0 1px 0 var(--border);flex:none}
+  .panel-title{flex:1;font-size:15px;line-height:1;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border:0;border-radius:var(--radius);background:none;color:var(--muted-foreground);cursor:pointer}
   .icon-btn:hover{background:var(--muted);color:var(--foreground)}
   .panel iframe{flex:1;width:100%;border:0;background:var(--background);opacity:0;transition:opacity .25s ease}
