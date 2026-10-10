@@ -63,3 +63,20 @@ p{margin:0 0 16px}
 .prose a{text-decoration:underline;text-underline-offset:3px}
 
 footer{padding:64px 0 40px;color:var(--muted-foreground);font-size:.85rem}
+
+/* split view: 데스크톱에서 좌 사이트 / 우 콘텐츠 패널 1:1 */
+.row[aria-current]{background:var(--muted)}
+.panel{display:none}
+@media (min-width:900px){
+  body.split{padding-right:50vw}
+  .panel{display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;width:50vw;background:var(--background);border-left:1px solid var(--border);transform:translateX(100%);transition:transform .2s ease;z-index:20}
+  body.split .panel{transform:none}
+  .panel-bar{display:flex;align-items:center;gap:4px;padding:10px 12px 10px 20px;border-bottom:1px solid var(--border)}
+  .panel-title{flex:1;font-size:.875rem;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border:0;border-radius:var(--radius);background:none;color:var(--muted-foreground);cursor:pointer}
+  .icon-btn:hover{background:var(--muted);color:var(--foreground)}
+  .panel iframe{flex:1;width:100%;border:0;background:var(--background)}
+}
+/* embed: 패널 안에서는 내비/푸터/뒤로가기 숨김 */
+.embed .nav,.embed footer,.embed .back{display:none}
+.embed .hero{padding-top:40px}
