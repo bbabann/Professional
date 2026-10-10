@@ -6,7 +6,7 @@ const API = process.env.NOTION_API_BASE || 'https://api.notion.com/v1';
 const VERSION = '2022-06-28';
 
 // 데이터베이스 속성 이름 (Notion에서 만든 이름과 맞춰야 함. 제목 속성은 타입으로 자동 탐지)
-export const PROPS = { slug: 'Slug', date: 'Date', tags: 'Tags', published: 'Published', summary: 'Summary' };
+export const PROPS = { slug: 'Slug', date: 'Date', tags: 'Tags', published: 'Published', summary: 'Summary', type: 'Type', role: 'Role' };
 
 async function api(token, route, body) {
   const res = await fetch(API + route, {
@@ -56,10 +56,10 @@ async function saveImage(url, ctx) {
     let ext = path.extname(new URL(url).pathname).toLowerCase();
     if (!/^\.(png|jpe?g|gif|webp|svg|avif)$/.test(ext)) ext = '.' + (type.split('/')[1] || 'png').split(';')[0].replace('jpeg', 'jpg').replace('svg+xml', 'svg');
     const name = `${++ctx.imageCount}${ext}`;
-    const dir = path.join(ctx.outDir, 'assets', 'posts', ctx.slug);
+    const dir = path.join(ctx.outDir, 'assets', ctx.dir, ctx.slug);
     await mkdir(dir, { recursive: true });
     await writeFile(path.join(dir, name), Buffer.from(await res.arrayBuffer()));
-    return `../assets/posts/${ctx.slug}/${name}`;
+    return `../assets/${ctx.dir}/${ctx.slug}/${name}`;
   } catch (e) {
     console.warn(`  ! image download failed (${e.message}), keeping remote URL`);
     return url;
@@ -134,12 +134,15 @@ export async function fetchPosts({ token, databaseId, outDir }) {
     if (used.has(slug)) slug += '-' + p.id.replace(/-/g, '').slice(0, 6);
     used.add(slug);
     const dateIso = pr[PROPS.date]?.date?.start || p.created_time;
-    console.log(`- ${title} (${slug})`);
-    const ctx = { slug, outDir, imageCount: 0 };
+    // Type 속성이 'Work'면 프로젝트, 비어 있거나 그 외는 글(article)
+    const type = (pr[PROPS.type]?.select?.name || '').toLowerCase() === 'work' ? 'work' : 'article';
+    console.log(`- [${type}] ${title} (${slug})`);
+    const ctx = { slug, outDir, imageCount: 0, dir: type === 'work' ? 'work' : 'posts' };
     const body = await renderBlocks(await children(token, p.id), ctx);
     const words = body.replace(/<[^>]+>/g, '').length;
     posts.push({
-      title, slug, dateIso, date: fmtDate(dateIso),
+      type, title, slug, dateIso, date: fmtDate(dateIso), year: String(new Date(dateIso).getUTCFullYear()),
+      role: plain(pr[PROPS.role]?.rich_text),
       tags: (pr[PROPS.tags]?.multi_select || []).map((x) => x.name),
       summary: plain(pr[PROPS.summary]?.rich_text),
       minutes: Math.max(1, Math.round(words / 500)), // 한글 기준 대략 분당 500자

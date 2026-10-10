@@ -28,26 +28,38 @@ if (!token || !databaseId) {
 }
 
 console.log('Notion에서 글을 가져오는 중...');
-const posts = await fetchPosts({ token, databaseId, outDir: OUT });
-console.log(`공개 글 ${posts.length}개`);
+const all = await fetchPosts({ token, databaseId, outDir: OUT });
+const posts = all.filter((p) => p.type === 'article');
+const works = all.filter((p) => p.type === 'work');
+console.log(`공개 글 ${posts.length}개, 프로젝트 ${works.length}개`);
 
-// 글 상세 페이지
-const template = await readFile('article.html', 'utf8');
-await mkdir(`${OUT}/posts`, { recursive: true });
-for (const p of posts) {
-  let h = toRoot(template);
-  h = h.replace(/<title>.*?<\/title>/, `<title>${esc(p.title)} | 류서환</title>`);
-  if (p.summary) h = h.replace(/(<meta name="description" content=")[^"]*"/, `$1${esc(p.summary)}"`);
-  h = fill(h, 'title', esc(p.title));
-  h = fill(h, 'meta', `<span>${p.date}</span>${p.tags.map((t) => `<span class="badge">${esc(t)}</span>`).join('')}<span>${p.minutes} min read</span>`);
-  h = fill(h, 'body', p.body);
-  await writeFile(`${OUT}/posts/${p.slug}.html`, h);
+// 상세 페이지: 글은 article.html, 프로젝트는 project.html 템플릿 사용
+async function writePages(items, templateFile, dir, siteTitle, metaOf) {
+  const template = await readFile(templateFile, 'utf8');
+  await mkdir(`${OUT}/${dir}`, { recursive: true });
+  for (const p of items) {
+    let h = toRoot(template);
+    h = h.replace(/<title>.*?<\/title>/, `<title>${esc(p.title)} | ${siteTitle}</title>`);
+    if (p.summary) h = h.replace(/(<meta name="description" content=")[^"]*"/, `$1${esc(p.summary)}"`);
+    h = fill(h, 'title', esc(p.title));
+    h = fill(h, 'meta', metaOf(p));
+    h = fill(h, 'body', p.body);
+    await writeFile(`${OUT}/${dir}/${p.slug}.html`, h);
+  }
 }
+const tags = (p) => p.tags.map((t) => `<span class="badge">${esc(t)}</span>`).join('');
+await writePages(posts, 'article.html', 'posts', '류서환', (p) => `<span>${p.date}</span>${tags(p)}<span>${p.minutes} min read</span>`);
+await writePages(works, 'project.html', 'work', '류서환', (p) => `<span>${p.year}</span>${p.role ? `<span>${esc(p.role)}</span>` : ''}${tags(p)}`);
 
-// 목록 (글 페이지: 전체 / 홈: 최신 3개). 글이 하나도 없으면 안내 문구
-const empty = '\n        <p class="empty" style="padding:14px 0">아직 글이 없습니다.</p>\n      ';
-for (const [file, list] of [['writing.html', posts], ['index.html', posts.slice(0, 3)]]) {
-  const h = await readFile(`${OUT}/${file}`, 'utf8');
-  await writeFile(`${OUT}/${file}`, fill(h, 'posts', list.length ? rows(list) : empty));
-}
+// 목록: 글 페이지=전체 글, 홈=최신 글 3개 + 전체 프로젝트
+const emptyOf = (msg) => `\n        <p class="empty" style="padding:14px 0">${msg}</p>\n      `;
+const workRows = (items) => items.map((p) =>
+  `\n        <a class="row" href="work/${encodeURIComponent(p.slug)}.html" data-panel><span class="title">${esc(p.title)}${p.summary ? `<span class="desc">${esc(p.summary)}</span>` : ''}</span><span class="meta">${[p.role, p.year].filter(Boolean).map(esc).join(' · ')}</span>${ARROW}</a>`).join('') + '\n      ';
+
+let h = await readFile(`${OUT}/writing.html`, 'utf8');
+await writeFile(`${OUT}/writing.html`, fill(h, 'posts', posts.length ? rows(posts) : emptyOf('아직 글이 없습니다.')));
+h = await readFile(`${OUT}/index.html`, 'utf8');
+h = fill(h, 'posts', posts.length ? rows(posts.slice(0, 3)) : emptyOf('아직 글이 없습니다.'));
+h = fill(h, 'works', works.length ? workRows(works) : emptyOf('아직 프로젝트가 없습니다.'));
+await writeFile(`${OUT}/index.html`, h);
 console.log('완료 → dist/');

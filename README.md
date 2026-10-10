@@ -20,7 +20,9 @@ HTML/CSS 정적 사이트 (shadcn 톤, 텍스트 중심). Notion 데이터베이
    | `Date` | Date | 게시일 (최신순 정렬) |
    | `Tags` | Multi-select | 태그 |
    | `Published` | Checkbox | **체크된 글만 게시** |
-   | `Summary` | Text | (선택) 요약 → meta description |
+   | `Summary` | Text | (선택) 요약 → 글은 meta description, 프로젝트는 목록의 한 줄 설명 |
+   | `Type` | Select | `Work` = 프로젝트(홈 Work 섹션), 비우거나 `Article` = 글(Writing) |
+   | `Role` | Text | (선택) 프로젝트에서 맡은 역할 → 목록과 상세에 표시 |
 
 3. 데이터베이스 페이지 우측 상단 `···` → **연결(Connections)** → 만든 통합 추가.
 4. 데이터베이스 ID 복사: 주소 `notion.so/<워크스페이스>/<DATABASE_ID>?v=...` 의 `<DATABASE_ID>` 32자.
