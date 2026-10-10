@@ -3,7 +3,7 @@
   --background:#fff;--foreground:#09090b;
   --muted:#f4f4f5;--muted-foreground:#71717a;
   --border:#e4e4e7;--radius:.5rem;
-  --ease:cubic-bezier(.32,.72,0,1);--dur:.45s; /* Vaul/iOS 스타일 이징 */
+  --ease:cubic-bezier(.32,.72,0,1);--dur:.45s;--panel:66.667vw; /* 패널 폭: 좌 1 : 우 2 */ /* Vaul/iOS 스타일 이징 */
   --font-sans:"Pretendard Variable",Pretendard,-apple-system,"Noto Sans KR",sans-serif;
   --font-serif:"Newsreader","Times New Roman",serif; /* 영문 타이포 포인트용 */
 }
@@ -68,10 +68,10 @@ footer{padding:64px 0 40px;color:var(--muted-foreground);font-size:.85rem}
 /* split view: 데스크톱에서 좌 사이트 / 우 콘텐츠 패널 1:1 */
 .row[aria-current]{background:var(--muted)}
 .panel{display:none}
-@media (min-width:900px){
+@media (min-width:1100px){
   body{transition:padding-right var(--dur) var(--ease)}
-  body.split{padding-right:50vw}
-  .panel{display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;width:50vw;background:var(--background);border-left:1px solid var(--border);transform:translateX(100%);visibility:hidden;transition:transform var(--dur) var(--ease),visibility 0s linear var(--dur);will-change:transform;z-index:20}
+  body.split{padding-right:var(--panel)}
+  .panel{display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;width:var(--panel);background:var(--background);border-left:1px solid var(--border);transform:translateX(100%);visibility:hidden;transition:transform var(--dur) var(--ease),visibility 0s linear var(--dur);will-change:transform;z-index:20}
   body.split .panel{transform:none;visibility:visible;transition:transform var(--dur) var(--ease),visibility 0s}
   .panel-bar{display:flex;align-items:center;gap:4px;padding:10px 12px 10px 20px;border-bottom:1px solid var(--border)}
   .panel-title{flex:1;font-size:.875rem;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

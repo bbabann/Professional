@@ -4,7 +4,7 @@ if (new URLSearchParams(location.search).has('embed')) document.documentElement.
 document.addEventListener('DOMContentLoaded', () => {
   if (document.documentElement.classList.contains('embed')) return;
 
-  const wide = window.matchMedia('(min-width: 900px)');
+  const wide = window.matchMedia('(min-width: 1100px)');
   const X = '<svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
   const OUT = '<svg class="icon" viewBox="0 0 24 24"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>';
 
