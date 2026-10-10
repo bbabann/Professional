@@ -29,7 +29,7 @@ HTML/CSS 정적 사이트 (shadcn 톤, 텍스트 중심). Notion 데이터베이
 1. 저장소 Settings → Secrets and variables → Actions → **New repository secret**
    - `NOTION_TOKEN`, `NOTION_DATABASE_ID`
 2. Settings → Pages → Source를 **GitHub Actions**로 변경.
-3. 이 코드를 `main` 브랜치에 병합 (스케줄 실행은 기본 브랜치에서만 동작).
+3. 스케줄 실행은 저장소의 **기본 브랜치**에서만 동작함 (현재 기본 브랜치: `claude/cool-cori-phxzqz`. 나중에 `main`으로 옮기면 워크플로의 `branches`도 맞춰 둘 것).
 4. Actions 탭 → "Build & Deploy" → **Run workflow** 로 첫 배포.
 
 이후 Notion에서 `Published`를 체크하면 최대 30분 안에 사이트에 반영됩니다. 바로 반영하려면 Actions에서 Run workflow.

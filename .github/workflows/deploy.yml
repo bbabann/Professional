@@ -2,7 +2,7 @@ name: Build & Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/cool-cori-phxzqz]
   schedule:
     - cron: "*/30 * * * *"   # 30분마다 Notion 변경사항 반영
   workflow_dispatch:          # Actions 탭의 "Run workflow" 버튼으로 즉시 반영
