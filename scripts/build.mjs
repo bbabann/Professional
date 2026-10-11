@@ -7,6 +7,8 @@ import { fetchPosts, esc } from './notion.mjs';
 const OUT = 'dist';
 const ARROW = '<svg class="icon" viewBox="0 0 24 24"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>';
 
+const CHEVRON = '<svg class="icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>';
+const coverHtml = (src) => `<figure class="cover"><img src="${esc(src)}" alt=""><span class="cover-cue">${CHEVRON}</span></figure>`;
 const fill = (html, key, value) => html.replace(new RegExp(`<!--${key}-->[\\s\\S]*?<!--/${key}-->`), () => `<!--${key}-->${value}<!--/${key}-->`);
 const toRoot = (html) => html.replace(/(href|src)="(?!https?:|#|mailto:|\.\.\/)([^"]+)"/g, '$1="../$2"'); // posts/ 하위용 상대경로
 
@@ -41,6 +43,8 @@ async function writePages(items, templateFile, dir, siteTitle, metaOf) {
     let h = toRoot(template);
     h = h.replace(/<title>.*?<\/title>/, `<title>${esc(p.title)} | ${siteTitle}</title>`);
     if (p.summary) h = h.replace(/(<meta name="description" content=")[^"]*"/, `$1${esc(p.summary)}"`);
+    h = fill(h, 'cover', p.cover ? coverHtml(p.cover) : '');
+    if (p.cover) h = h.replace('<main>', '<main class="has-cover">');
     h = fill(h, 'title', esc(p.title));
     h = fill(h, 'meta', metaOf(p));
     h = fill(h, 'body', p.body);
