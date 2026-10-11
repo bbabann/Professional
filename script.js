@@ -88,15 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (active) active.removeAttribute('aria-current');
     active = null; // src는 유지: 닫히는 동안 내용이 비지 않고, 같은 항목을 다시 열면 재로딩 없음
   }
-  // 패널을 열 때 히스토리를 한 칸만 쌓아서, 모바일의 뒤로가기/스와이프로도 패널이 닫히게 함
+  // 패널을 열 때 히스토리를 한 칸만 쌓아 두어, 모바일의 뒤로가기/스와이프로도 패널이 닫히게 함.
+  // ✕/Esc/같은 항목 재클릭은 히스토리를 건드리지 않고 패널만 닫는다 (남은 한 칸은 다음에 열 때 재사용).
   let pushed = false;
   if (history.state && history.state.panel) history.replaceState(null, ''); // 새로고침 등으로 남은 낡은 상태 정리
-  function close() {
-    if (pushed) {
-      history.back(); // popstate에서 hide()
-      setTimeout(() => { if (document.body.classList.contains('split')) { hide(); pushed = false; } }, 500); // 안전장치
-    } else hide();
-  }
+  function close() { hide(); }
   window.addEventListener('popstate', () => { pushed = false; if (document.body.classList.contains('split')) hide(); });
 
   document.addEventListener('click', (e) => {
