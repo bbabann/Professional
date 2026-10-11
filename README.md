@@ -74,8 +74,5 @@ echo "alias deploy='gh workflow run deploy.yml -R bbabann/Professional'" >> ~/.z
 - 브라우저로 할 때: https://github.com/bbabann/Professional/actions/workflows/deploy.yml → Run workflow
 - 터미널 기록 검색: `Ctrl+R` 후 `workflow` 입력
 
-## 커버 이미지
-Notion 페이지에 **커버**(페이지 상단 이미지)를 설정하면, 글/프로젝트를 열었을 때 첫 화면이 그 이미지로 화면 높이만큼 꽉 채워지고 스크롤하면 제목과 본문이 이어집니다. 커버가 없으면 기존처럼 제목부터 시작합니다. 스크롤하면 커버는 고정된 채 작아지고 어두워지며(이미지는 천천히 확대·이동), 본문이 둥근 시트로 그 위를 덮고 올라오고, 제목은 마스크 안에서 올라옵니다. '동작 줄이기' 설정을 켠 사용자에게는 움직임이 꺼집니다. (`script.js`의 `initCover`/`initReveal`, `style.css`의 `.cover`/`.rv` 참고) (이미지는 빌드 때 내려받아 `assets/`에 저장 — Notion 파일 URL은 1시간 후 만료되기 때문)
-
 ## 폰트
 `<html data-font="pretendard|suite">` 로 전환 (비교용). 헤드라인만 Newsreader.

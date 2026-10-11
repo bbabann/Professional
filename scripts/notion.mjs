@@ -181,13 +181,10 @@ export async function fetchPosts({ token, databaseId, outDir }) {
     const type = (pr[PROPS.type]?.select?.name || '').toLowerCase() === 'work' ? 'work' : 'article';
     console.log(`- [${type}] ${title} (${slug})`);
     const ctx = { slug, outDir, imageCount: 0, dir: type === 'work' ? 'work' : 'posts' };
-    // 페이지 커버: Notion 파일 URL은 만료되므로 이미지처럼 내려받아 저장 (첫 번째 이미지로 저장됨)
-    const coverUrl = p.cover ? (p.cover.type === 'external' ? p.cover.external.url : p.cover.file?.url) : null;
-    const cover = coverUrl ? await saveImage(coverUrl, ctx) : null;
     const body = await renderBlocks(await children(token, p.id), ctx);
     const words = body.replace(/<[^>]+>/g, '').length;
     posts.push({
-      type, cover, title, slug, dateIso, date: fmtDate(dateIso), year: String(new Date(dateIso).getUTCFullYear()),
+      type, title, slug, dateIso, date: fmtDate(dateIso), year: String(new Date(dateIso).getUTCFullYear()),
       role: plain(pr[PROPS.role]?.rich_text),
       tags: (pr[PROPS.tags]?.multi_select || []).map((x) => x.name),
       summary: plain(pr[PROPS.summary]?.rich_text),
