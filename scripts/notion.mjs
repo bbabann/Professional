@@ -33,8 +33,14 @@ async function paginate(token, route, body) {
 export const esc = (s = '') => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const plain = (rt = []) => rt.map((t) => t.plain_text).join('');
 
-function richText(rt = []) {
-  return rt.map((t) => {
+const isHl = (t) => t?.annotations?.color === 'yellow_background';
+// 연속된 노란 배경 조각(굵게 등으로 쪼개진 것 포함)은 하나의 형광펜 구간으로 센다
+const hlRuns = (rt = []) => rt.reduce((n, t, i) => n + (isHl(t) && !isHl(rt[i - 1]) ? 1 : 0), 0);
+
+// notes: { list: 구간별 코멘트 문자열 배열, i: 다음 구간 번호 }
+function richText(rt = [], notes = null) {
+  let note = '';
+  return rt.map((t, i) => {
     let s = esc(t.plain_text).replace(/\n/g, '<br>');
     const a = t.annotations || {};
     if (a.code) s = `<code>${s}</code>`;
@@ -43,8 +49,52 @@ function richText(rt = []) {
     if (a.strikethrough) s = `<s>${s}</s>`;
     if (a.underline) s = `<u>${s}</u>`;
     if (t.href) s = `<a href="${esc(t.href)}" target="_blank" rel="noopener">${s}</a>`;
+    if (isHl(t)) {
+      if (!isHl(rt[i - 1])) note = notes ? (notes.list[notes.i++] || '') : ''; // 새 구간 시작
+      s = note ? `<mark class="note" tabindex="0" data-note="${esc(note)}">${s}</mark>` : `<mark class="hl">${s}</mark>`;
+    }
     return s;
   }).join('');
+}
+
+// --- 코멘트: 형광펜(노란 배경) 구간이 있는 블록에서만 코멘트를 가져와 호버 팝업용으로 연결 ---
+// Notion API는 코멘트가 달린 '문구'를 알려주지 않고 블록 단위로만 주므로, 문구 위치는 글에 칠한 노란 배경색으로 찾는다.
+const commentsState = { disabled: false, loggedFields: false };
+
+async function fetchBlockNotes(token, blockId) {
+  if (commentsState.disabled) return [];
+  let results;
+  try {
+    results = await paginate(token, `/comments?block_id=${blockId}`);
+  } catch (e) {
+    if (/ 40[13] /.test(e.message)) {
+      commentsState.disabled = true;
+      console.warn('  ! 코멘트를 읽을 수 없습니다 — Notion 통합의 "Read comments" 권한을 켜면 호버 팝업이 표시됩니다 (형광펜만 표시)');
+    } else console.warn(`  ! 코멘트 조회 실패: ${e.message.slice(0, 140)}`);
+    return [];
+  }
+  if (!commentsState.loggedFields && results[0]) {
+    commentsState.loggedFields = true;
+    console.log('  comment fields:', Object.keys(results[0]).join(','));
+  }
+  const groups = new Map(); // 같은 토론(스레드)의 답글은 하나로 묶음. API는 오래된 순으로 반환
+  for (const c of results) {
+    const k = c.discussion_id || c.id;
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(plain(c.rich_text));
+  }
+  return [...groups.values()].map((arr) => arr.filter(Boolean).join('\n\n'));
+}
+
+async function notesFor(b, ctx) {
+  const arr = b[b.type]?.rich_text;
+  if (!Array.isArray(arr)) return null;
+  const k = hlRuns(arr);
+  if (!k) return null;
+  const groups = await fetchBlockNotes(ctx.token, b.id);
+  if (k === 1) return { list: [groups.join('\n\n')], i: 0 }; // 형광펜이 하나면 그 블록의 코멘트를 모두 사용
+  if (groups.length !== k && groups.length) console.warn(`  ! 한 문단에 형광펜 ${k}개, 코멘트 ${groups.length}개 → 작성 순서대로(왼쪽부터) 연결합니다`);
+  return { list: groups.slice(0, k), i: 0 };
 }
 
 // Notion 파일 URL은 약 1시간 후 만료되므로 빌드 시 내려받아 정적 자산으로 저장
@@ -101,6 +151,8 @@ async function renderBlocks(blocks = [], ctx) {
     const b = blocks[i];
     const t = b.type;
     const d = b[t] || {};
+    const isListItem = t === 'bulleted_list_item' || t === 'numbered_list_item' || t === 'to_do';
+    const notes = isListItem ? null : await notesFor(b, ctx); // 리스트 항목은 아래 반복문에서 항목별로 처리
     const inner = async () => (b.children ? renderBlocks(b.children, ctx) : '');
     if (t === 'bulleted_list_item' || t === 'numbered_list_item' || t === 'to_do') {
       const tag = t === 'numbered_list_item' ? 'ol' : 'ul';
@@ -108,7 +160,7 @@ async function renderBlocks(blocks = [], ctx) {
       while (i < blocks.length && (blocks[i].type === t)) {
         const x = blocks[i];
         const box = t === 'to_do' ? (x.to_do.checked ? '☑ ' : '☐ ') : '';
-        items += `<li${t === 'to_do' ? ' class="todo"' : ''}>${box}${richText(x[t].rich_text)}${x.children ? await renderBlocks(x.children, ctx) : ''}</li>`;
+        items += `<li${t === 'to_do' ? ' class="todo"' : ''}>${box}${richText(x[t].rich_text, await notesFor(x, ctx))}${x.children ? await renderBlocks(x.children, ctx) : ''}</li>`;
         i++;
       }
       i--;
@@ -116,13 +168,13 @@ async function renderBlocks(blocks = [], ctx) {
       continue;
     }
     switch (t) {
-      case 'paragraph': html += d.rich_text.length ? `<p>${richText(d.rich_text)}</p>\n` : ''; html += await inner(); break;
-      case 'heading_1': case 'heading_2': html += `<h2>${richText(d.rich_text)}</h2>\n`; break; // 글 제목이 h1이므로 한 단계씩 내림
-      case 'heading_3': html += `<h3>${richText(d.rich_text)}</h3>\n`; break;
-      case 'quote': html += `<blockquote>${richText(d.rich_text)}${await inner()}</blockquote>\n`; break;
+      case 'paragraph': html += d.rich_text.length ? `<p>${richText(d.rich_text, notes)}</p>\n` : ''; html += await inner(); break;
+      case 'heading_1': case 'heading_2': html += `<h2>${richText(d.rich_text, notes)}</h2>\n`; break; // 글 제목이 h1이므로 한 단계씩 내림
+      case 'heading_3': html += `<h3>${richText(d.rich_text, notes)}</h3>\n`; break;
+      case 'quote': html += `<blockquote>${richText(d.rich_text, notes)}${await inner()}</blockquote>\n`; break;
       case 'callout': {
         // 앞뒤 줄바꿈은 제거하고, 텍스트도 자식 블록처럼 독립된 블록으로 렌더 (<br> 바로 뒤에 블록이 오는 구조를 피함)
-        const text = richText(d.rich_text).replace(/^(<br>)+|(<br>)+$/g, '');
+        const text = richText(d.rich_text, notes).replace(/^(<br>)+|(<br>)+$/g, '');
         html += `<div class="callout"><span>${esc(d.icon?.emoji || '')}</span><div class="callout-body">${text ? `<div class="callout-text">${text}</div>` : ''}${await inner()}</div></div>\n`;
         break;
       }
@@ -130,7 +182,7 @@ async function renderBlocks(blocks = [], ctx) {
       case 'column_list': html += `<div class="columns" style="--cols:${(b.children || []).length || 1}">${await inner()}</div>\n`; break;
       case 'column': html += `<div class="column">${await inner()}</div>`; break;
       case 'divider': html += '<hr>\n'; break;
-      case 'toggle': html += `<details><summary>${richText(d.rich_text)}</summary>${await inner()}</details>\n`; break;
+      case 'toggle': html += `<details><summary>${richText(d.rich_text, notes)}</summary>${await inner()}</details>\n`; break;
       case 'bookmark': case 'link_preview': html += `<p><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.url)}</a></p>\n`; break;
       case 'image': {
         if (isCompareImage(b) && isCompareImage(blocks[i + 1])) {
@@ -185,7 +237,7 @@ export async function fetchPosts({ token, databaseId, outDir }) {
     // Type 속성이 'Work'면 프로젝트, 비어 있거나 그 외는 글(article)
     const type = (pr[PROPS.type]?.select?.name || '').toLowerCase() === 'work' ? 'work' : 'article';
     console.log(`- [${type}] ${title} (${slug})`);
-    const ctx = { slug, outDir, imageCount: 0, dir: type === 'work' ? 'work' : 'posts' };
+    const ctx = { token, slug, outDir, imageCount: 0, dir: type === 'work' ? 'work' : 'posts' };
     const body = await renderBlocks(await children(token, p.id), ctx);
     const words = body.replace(/<[^>]+>/g, '').length;
     posts.push({

@@ -74,5 +74,13 @@ echo "alias deploy='gh workflow run deploy.yml -R bbabann/Professional'" >> ~/.z
 - 브라우저로 할 때: https://github.com/bbabann/Professional/actions/workflows/deploy.yml → Run workflow
 - 터미널 기록 검색: `Ctrl+R` 후 `workflow` 입력
 
+## 형광펜 + 코멘트 팝업
+Notion 글에서 문구를 **노란 배경색**(텍스트 색 메뉴의 `Yellow background`)으로 칠하면 사이트에서 형광펜으로 표시되고, 그 **문단에 달린 코멘트**가 마우스를 따라다니는 팝업으로 나옵니다 (터치 기기는 탭하면 열고 닫음).
+- Notion API는 코멘트가 달린 **문구**를 알려주지 않고 **문단(블록)**만 알려주기 때문에, 문구 위치는 노란 배경색으로 찾습니다. 코멘트를 달 문구에 노란 배경을 같이 칠해 주세요.
+- 필요한 설정: Notion 통합(integration)의 **Read comments** 권한을 켜야 합니다 (없으면 형광펜만 표시되고 빌드 로그에 안내가 남음).
+- 한 문단에 형광펜 구간이 하나면 그 문단의 코멘트를 모두 보여주고, 여러 개면 **코멘트를 단 순서 = 왼쪽부터 순서**로 연결합니다.
+- 같은 스레드의 답글은 한 팝업에 이어서 표시됩니다. 해결(resolved)된 코멘트는 API가 주지 않아 표시되지 않습니다.
+- 형광펜(노란 배경)이 있는 문단의 코멘트만 공개되므로, 형광펜이 없는 문단의 내부 메모는 노출되지 않습니다. **노란 배경을 칠한 문단의 코멘트는 모두 공개된다**는 점에 주의하세요.
+
 ## 폰트
 `<html data-font="pretendard|suite">` 로 전환 (비교용). 헤드라인만 Newsreader.

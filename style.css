@@ -143,3 +143,11 @@ body.split{overflow:hidden} /* 좁은 화면: 열려 있는 동안 뒤 페이지
 /* 콜아웃: 텍스트·자식 문단 모두 같은 줄 간격(여백 0) */
 .prose .callout-body{flex:1;min-width:0}
 .prose .callout-body>p,.prose .callout-body>.callout-text{margin:0}
+
+/* 형광펜(Notion 노란 배경) + 코멘트 팝업 */
+.prose mark{background:none;color:inherit}
+.prose mark.hl,.prose mark.note{background:color-mix(in srgb,#facc15 30%,transparent);box-shadow:0 2px 0 #facc15;padding:0 1px}
+.prose mark.note{cursor:help;outline:none}
+.prose mark.note:hover,.prose mark.note:focus-visible{background:color-mix(in srgb,#facc15 48%,transparent)}
+.note-tip{position:fixed;z-index:50;left:0;top:0;max-width:min(320px,calc(100vw - 16px));padding:10px 12px;background:var(--background);color:var(--prose-foreground);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 24px rgba(0,0,0,.14);font-size:13px;line-height:1.55;letter-spacing:0;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .12s ease,transform .12s ease}
+.note-tip.show{opacity:1;transform:none}

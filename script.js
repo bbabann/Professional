@@ -20,6 +20,50 @@ function initReveal() {
   targets.forEach((el) => io.observe(el));
 }
 
+// 코멘트 팝업: 마우스를 따라다니는 툴팁(터치 기기는 탭하면 열고 닫음)
+function initNotes() {
+  const marks = document.querySelectorAll('mark.note');
+  if (!marks.length) return;
+  const tip = document.createElement('div');
+  tip.className = 'note-tip';
+  tip.setAttribute('role', 'tooltip');
+  document.body.appendChild(tip);
+  let current = null;
+
+  const place = (x, y) => {
+    const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+    let left = x + pad, top = y + pad;
+    if (left + w > window.innerWidth - 8) left = x - w - pad; // 오른쪽이 넘치면 커서 왼쪽에
+    if (top + h > window.innerHeight - 8) top = y - h - pad;  // 아래가 넘치면 커서 위에
+    tip.style.left = Math.max(8, left) + 'px';
+    tip.style.top = Math.max(8, top) + 'px';
+  };
+  const show = (mark, x, y) => {
+    current = mark;
+    tip.textContent = mark.dataset.note;
+    place(x, y);
+    tip.classList.add('show');
+  };
+  const hide = () => { current = null; tip.classList.remove('show'); };
+  const touchOnly = window.matchMedia('(hover: none)');
+
+  marks.forEach((m) => {
+    m.addEventListener('mouseenter', (e) => { if (!touchOnly.matches) show(m, e.clientX, e.clientY); });
+    m.addEventListener('mousemove', (e) => { if (current === m && !touchOnly.matches) place(e.clientX, e.clientY); });
+    m.addEventListener('mouseleave', () => { if (current === m) hide(); });
+    m.addEventListener('focus', () => { const r = m.getBoundingClientRect(); show(m, r.left, r.bottom); });
+    m.addEventListener('blur', () => { if (current === m) hide(); });
+    m.addEventListener('click', (e) => {
+      if (!touchOnly.matches) return;
+      if (current === m) hide(); else show(m, e.clientX, e.clientY);
+      e.stopPropagation();
+    });
+  });
+  document.addEventListener('click', hide);
+  document.addEventListener('scroll', hide, { passive: true, capture: true });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+}
+
 function initCompare(stage) {
   const fig = stage.parentElement;
   let dragging = false;
@@ -43,6 +87,7 @@ function initCompare(stage) {
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.compare-stage').forEach(initCompare);
   initReveal();
+  initNotes();
   if (document.documentElement.classList.contains('embed')) return;
 
   const X = '<svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
