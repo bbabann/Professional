@@ -89,7 +89,9 @@ async function fetchBlockNotes(token, blockId) {
 async function notesFor(b, ctx) {
   const arr = b[b.type]?.rich_text;
   if (!Array.isArray(arr)) return null;
+  for (const t of arr) { const c = t.annotations?.color; if (c && c !== 'default') ctx.stats.colors.add(c); } // 진단: 사용된 색
   const k = hlRuns(arr);
+  ctx.stats.hl += k;
   if (!k) return null;
   const groups = await fetchBlockNotes(ctx.token, b.id);
   if (k === 1) return { list: [groups.join('\n\n')], i: 0 }; // 형광펜이 하나면 그 블록의 코멘트를 모두 사용
@@ -237,8 +239,9 @@ export async function fetchPosts({ token, databaseId, outDir }) {
     // Type 속성이 'Work'면 프로젝트, 비어 있거나 그 외는 글(article)
     const type = (pr[PROPS.type]?.select?.name || '').toLowerCase() === 'work' ? 'work' : 'article';
     console.log(`- [${type}] ${title} (${slug})`);
-    const ctx = { token, slug, outDir, imageCount: 0, dir: type === 'work' ? 'work' : 'posts' };
+    const ctx = { token, slug, outDir, imageCount: 0, dir: type === 'work' ? 'work' : 'posts', stats: { hl: 0, colors: new Set() } };
     const body = await renderBlocks(await children(token, p.id), ctx);
+    if (ctx.stats.hl || ctx.stats.colors.size) console.log(`  · 노란 배경 형광펜 ${ctx.stats.hl}개${ctx.stats.colors.size ? ` / 이 글에서 쓰인 색: ${[...ctx.stats.colors].join(', ')}` : ''}`);
     const words = body.replace(/<[^>]+>/g, '').length;
     posts.push({
       type, title, slug, dateIso, date: fmtDate(dateIso), year: String(new Date(dateIso).getUTCFullYear()),
