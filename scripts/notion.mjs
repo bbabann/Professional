@@ -94,6 +94,8 @@ async function notesFor(b, ctx) {
   ctx.stats.hl += k;
   if (!k) return null;
   const groups = await fetchBlockNotes(ctx.token, b.id);
+  // 진단: 형광펜 구간 수 / 코멘트 스레드 수 (문단 앞부분만 표시)
+  console.log(`  · 형광펜 ${k}개 ↔ 코멘트 스레드 ${groups.length}개 — "${arr.map((t) => t.plain_text).join('').replace(/\s+/g, ' ').slice(0, 24)}…"`);
   if (k === 1) return { list: [groups.join('\n\n')], i: 0 }; // 형광펜이 하나면 그 블록의 코멘트를 모두 사용
   if (groups.length !== k && groups.length) console.warn(`  ! 한 문단에 형광펜 ${k}개, 코멘트 ${groups.length}개 → 작성 순서대로(왼쪽부터) 연결합니다`);
   return { list: groups.slice(0, k), i: 0 };
