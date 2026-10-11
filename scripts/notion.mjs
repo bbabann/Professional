@@ -120,7 +120,12 @@ async function renderBlocks(blocks = [], ctx) {
       case 'heading_1': case 'heading_2': html += `<h2>${richText(d.rich_text)}</h2>\n`; break; // 글 제목이 h1이므로 한 단계씩 내림
       case 'heading_3': html += `<h3>${richText(d.rich_text)}</h3>\n`; break;
       case 'quote': html += `<blockquote>${richText(d.rich_text)}${await inner()}</blockquote>\n`; break;
-      case 'callout': html += `<div class="callout"><span>${esc(d.icon?.emoji || '')}</span><div>${richText(d.rich_text)}${await inner()}</div></div>\n`; break;
+      case 'callout': {
+        // 앞뒤 줄바꿈은 제거하고, 텍스트도 자식 블록처럼 독립된 블록으로 렌더 (<br> 바로 뒤에 블록이 오는 구조를 피함)
+        const text = richText(d.rich_text).replace(/^(<br>)+|(<br>)+$/g, '');
+        html += `<div class="callout"><span>${esc(d.icon?.emoji || '')}</span><div class="callout-body">${text ? `<div class="callout-text">${text}</div>` : ''}${await inner()}</div></div>\n`;
+        break;
+      }
       case 'code': html += `<pre><code class="language-${esc(d.language)}">${esc(plain(d.rich_text))}</code></pre>\n`; break;
       case 'column_list': html += `<div class="columns" style="--cols:${(b.children || []).length || 1}">${await inner()}</div>\n`; break;
       case 'column': html += `<div class="column">${await inner()}</div>`; break;

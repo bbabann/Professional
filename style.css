@@ -64,7 +64,7 @@ p{margin:0 0 16px}
 .prose blockquote{margin:24px 0;padding-left:16px;border-left:2px solid var(--border);color:var(--muted-foreground)}
 .prose code{background:var(--muted);border-radius:4px;padding:2px 6px;font-size:.88em}
 .prose pre{background:var(--muted);border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow:auto}
-.prose img{max-width:100%}
+.prose img{display:block;max-width:100%;margin:0 auto} /* 인라인 이미지 아래의 미세한 틈 제거 */
 .prose a{text-decoration:underline;text-underline-offset:3px}
 
 footer{padding:64px 0 40px;color:var(--muted-foreground);font-size:.85rem}
@@ -97,8 +97,8 @@ body.split{overflow:hidden} /* 좁은 화면: 열려 있는 동안 뒤 페이지
 .prose ul,.prose ol{padding-left:1.4em;margin:0 0 16px}
 .prose li{margin:4px 0}
 .prose hr{border:0;border-top:1px solid var(--border);margin:32px 0}
-.prose figure{margin:24px 0}
-.prose figcaption{color:var(--muted-foreground);font-size:.85rem;margin-top:8px;text-align:center}
+.prose figure{margin:40px 0}
+.prose figcaption{color:var(--muted-foreground);font-size:.85rem;line-height:1.5;margin-top:12px;text-align:center} /* 캡션은 자기 이미지에 붙이고, 다음 블록과는 figure 마진(40px)으로 분리 */
 .prose details{margin:0 0 16px}
 .prose summary{cursor:pointer;font-weight:500}
 .prose .callout{display:flex;gap:12px;border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin:24px 0}
@@ -139,3 +139,7 @@ body.split{overflow:hidden} /* 좁은 화면: 열려 있는 동안 뒤 페이지
 .mask{display:block;overflow:hidden;padding-bottom:.12em;margin-bottom:-.12em}
 .js-motion h1.rv .rise{display:block;transform:translateY(110%);transition:transform 1s var(--ease)}
 .js-motion h1.rv.in .rise{transform:none}
+
+/* 콜아웃: 텍스트·자식 문단 모두 같은 줄 간격(여백 0) */
+.prose .callout-body{flex:1;min-width:0}
+.prose .callout-body>p,.prose .callout-body>.callout-text{margin:0}
