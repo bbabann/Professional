@@ -122,6 +122,8 @@ async function renderBlocks(blocks = [], ctx) {
       case 'quote': html += `<blockquote>${richText(d.rich_text)}${await inner()}</blockquote>\n`; break;
       case 'callout': html += `<div class="callout"><span>${esc(d.icon?.emoji || '')}</span><div>${richText(d.rich_text)}${await inner()}</div></div>\n`; break;
       case 'code': html += `<pre><code class="language-${esc(d.language)}">${esc(plain(d.rich_text))}</code></pre>\n`; break;
+      case 'column_list': html += `<div class="columns" style="--cols:${(b.children || []).length || 1}">${await inner()}</div>\n`; break;
+      case 'column': html += `<div class="column">${await inner()}</div>`; break;
       case 'divider': html += '<hr>\n'; break;
       case 'toggle': html += `<details><summary>${richText(d.rich_text)}</summary>${await inner()}</details>\n`; break;
       case 'bookmark': case 'link_preview': html += `<p><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.url)}</a></p>\n`; break;

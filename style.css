@@ -118,3 +118,9 @@ footer{padding:64px 0 40px;color:var(--muted-foreground);font-size:.85rem}
 .compare-handle::after{content:"";position:absolute;top:50%;left:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;background:var(--background);box-shadow:0 0 0 1px var(--border),0 1px 4px rgba(0,0,0,.2)}
 .compare-label{position:absolute;top:12px;padding:0 10px;border-radius:999px;background:var(--background);color:var(--foreground);font-size:.75rem;line-height:22px;opacity:.9;pointer-events:none}
 .compare-label-l{left:12px}.compare-label-r{right:12px}
+
+/* Notion 컬럼 레이아웃 (같은 폭으로 나눔, 좁은 화면에서는 세로로 쌓음) */
+.prose .columns{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:24px;margin:24px 0;align-items:start}
+.prose .column>:first-child{margin-top:0}
+.prose .column>:last-child{margin-bottom:0}
+@media (max-width:640px){.prose .columns{grid-template-columns:1fr}}
