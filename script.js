@@ -27,21 +27,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const wide = window.matchMedia('(min-width: 1100px)');
   const X = '<svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
-  const OUT = '<svg class="icon" viewBox="0 0 24 24"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>';
 
   const panel = document.createElement('aside');
   panel.className = 'panel';
   panel.setAttribute('aria-hidden', 'true');
   panel.innerHTML =
-    '<div class="panel-bar"><span class="panel-title"></span>' +
-    '<a class="icon-btn panel-open" target="_blank" rel="noopener" aria-label="새 탭에서 열기">' + OUT + '</a>' +
-    '<button class="icon-btn panel-close" aria-label="닫기">' + X + '</button></div>' +
+    '<button class="icon-btn panel-close" aria-label="닫기">' + X + '</button>' +
     '<iframe title="콘텐츠"></iframe>';
   document.body.appendChild(panel);
 
   const frame = panel.querySelector('iframe');
-  const title = panel.querySelector('.panel-title');
-  const openLink = panel.querySelector('.panel-open');
   let active = null;
   frame.addEventListener('load', () => frame.classList.add('ready'));
 
@@ -52,8 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
       frame.classList.remove('ready'); // 새 콘텐츠는 로드 후 페이드인
       frame.src = next;
     }
-    openLink.href = href;
-    title.textContent = row.querySelector('.title').firstChild.textContent.trim();
     if (active) active.removeAttribute('aria-current');
     active = row;
     row.setAttribute('aria-current', 'true');
