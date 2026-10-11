@@ -1,7 +1,7 @@
 /* shadcn(zinc) 톤: 얇은 보더, 작은 라운드, muted 텍스트 */
 :root{
   --background:#fff;--foreground:#09090b;
-  --muted:#f4f4f5;--muted-foreground:#71717a;
+  --muted:#f4f4f5;--muted-foreground:#71717a;--prose-foreground:#27272a; /* 본문 텍스트: foreground보다 한 단계 연함 */
   --border:#e4e4e7;--radius:.5rem;
   --gutter:max(40px,calc((var(--panel) - 640px) / 2)); /* 패널 상단 바와 본문이 공유하는 좌우 여백: 본문 폭을 640px로 두고 남는 공간을 양쪽으로 분배(최소 40px) */
   --bar-h:64px; /* 상단 내비와 패널 바가 공유하는 높이 */
@@ -11,7 +11,7 @@
 }
 html[data-font="suite"]{--font-sans:"SUITE Variable","SUITE",-apple-system,"Noto Sans KR",sans-serif}
 @media (prefers-color-scheme:dark){
-  :root{--background:#09090b;--foreground:#fafafa;--muted:#18181b;--muted-foreground:#a1a1aa;--border:#27272a}
+  :root{--background:#09090b;--foreground:#fafafa;--muted:#18181b;--muted-foreground:#a1a1aa;--prose-foreground:#e4e4e7;--border:#27272a}
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -58,7 +58,7 @@ p{margin:0 0 16px}
 .article-head{margin-bottom:32px}
 .article-head h1{font-family:var(--font-sans);font-weight:600;letter-spacing:-.02em} /* 본문 제목은 Pretendard(본문 폰트) */
 .article-head .meta{display:flex;gap:12px;align-items:center;color:var(--muted-foreground);font-size:.85rem}
-.prose{font-size:15px;line-height:1.7}
+.prose{font-size:15px;line-height:1.7;color:var(--prose-foreground)}
 .prose h2{font-size:1.15rem;font-weight:600;color:var(--foreground);margin:36px 0 12px}
 .prose blockquote{margin:24px 0;padding-left:16px;border-left:2px solid var(--border);color:var(--muted-foreground)}
 .prose code{background:var(--muted);border-radius:4px;padding:2px 6px;font-size:.88em}
