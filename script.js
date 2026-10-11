@@ -85,7 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const row = e.target.closest('a.row[data-panel]');
     if (!row || !wide.matches || e.metaKey || e.ctrlKey || e.shiftKey) return; // 좁은 화면/새 탭 클릭은 기본 이동
     e.preventDefault();
-    open(row);
+    if (row === active) close(); // 이미 선택된 항목을 다시 누르면 선택 해제(패널 닫기)
+    else open(row);
   });
   panel.querySelector('.panel-close').addEventListener('click', close);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
