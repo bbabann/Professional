@@ -2,6 +2,7 @@
 //   NOTION_TOKEN=secret_xxx NOTION_DATABASE_ID=xxxx node scripts/build.mjs
 // 토큰이 없으면 placeholder 그대로 빌드한다.
 import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { fetchPosts, esc } from './notion.mjs';
 
 const OUT = 'dist';
@@ -12,6 +13,21 @@ const toRoot = (html) => html.replace(/(href|src)="(?!https?:|#|mailto:|\.\.\/)(
 
 const rows = (posts, prefix = '') => posts.map((p) =>
   `\n        <a class="row" href="${prefix}posts/${encodeURIComponent(p.slug)}.html" data-panel><span class="title">${esc(p.title)}</span><span class="meta">${p.date}</span>${ARROW}</a>`).join('') + '\n      ';
+
+
+// 배포마다 달라지는 값을 CSS/JS 주소와 <html data-build>에 넣어, 브라우저가 이전 파일(최대 10분 캐시)을 쓰지 않게 함.
+// script.js는 이 값을 패널(iframe) 주소에도 붙인다.
+const BUILD = Date.now().toString(36);
+async function stampBuild(dir) {
+  for (const e of await readdir(dir, { withFileTypes: true })) {
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) { if (e.name !== 'assets') await stampBuild(p); continue; }
+    if (!e.name.endsWith('.html')) continue;
+    let h = await readFile(p, 'utf8');
+    h = h.replace(/(href|src)="((?:\.\.\/)?(?:style\.css|script\.js))"/g, `$1="$2?v=${BUILD}"`).replace('<html ', `<html data-build="${BUILD}" `);
+    await writeFile(p, h);
+  }
+}
 
 await rm(OUT, { recursive: true, force: true });
 await mkdir(OUT, { recursive: true });
@@ -24,6 +40,7 @@ const token = process.env.NOTION_TOKEN;
 const databaseId = process.env.NOTION_DATABASE_ID;
 if (!token || !databaseId) {
   console.warn('NOTION_TOKEN / NOTION_DATABASE_ID 없음 → placeholder로 빌드합니다.');
+  await stampBuild(OUT);
   process.exit(0);
 }
 
@@ -62,4 +79,5 @@ h = await readFile(`${OUT}/index.html`, 'utf8');
 h = fill(h, 'posts', posts.length ? rows(posts.slice(0, 3)) : emptyOf('아직 글이 없습니다.'));
 h = fill(h, 'works', works.length ? workRows(works) : emptyOf('아직 프로젝트가 없습니다.'));
 await writeFile(`${OUT}/index.html`, h);
+await stampBuild(OUT);
 console.log('완료 → dist/');

@@ -89,6 +89,7 @@ async function fetchBlockNotes(token, blockId, ctx) {
     const text = plain(c.rich_text);
     if (text) g.texts.push(text);
     // 코멘트에 첨부된 이미지: Notion 파일 URL은 곧 만료되므로 내려받아 저장
+    if (c.attachments?.length && !commentsState.loggedAttach) { commentsState.loggedAttach = true; console.log('  attachments fields:', c.attachments.map((a) => `${a.category || '?'}{${Object.keys(a).join(',')}}`).join(' | ')); }
     for (const a of c.attachments || []) {
       const url = a.file?.url || a.external?.url;
       if (url && (a.category === 'image' || /\.(png|jpe?g|gif|webp|avif|svg)(\?|$)/i.test(url))) g.images.push(await saveImage(url, ctx));
@@ -106,7 +107,8 @@ async function notesFor(b, ctx) {
   if (!k) return null;
   const groups = await fetchBlockNotes(ctx.token, b.id, ctx);
   // 진단: 형광펜 구간 수 / 코멘트 스레드 수 (문단 앞부분만 표시)
-  console.log(`  · 형광펜 ${k}개 ↔ 코멘트 스레드 ${groups.length}개 — "${arr.map((t) => t.plain_text).join('').replace(/\s+/g, ' ').slice(0, 24)}…"`);
+  const shape = groups.map((g) => `${g.text ? '텍스트' : ''}${g.text && g.images.length ? '+' : ''}${g.images.length ? `이미지${g.images.length}` : ''}` || '빈 코멘트').join(', ');
+  console.log(`  · 형광펜 ${k}개 ↔ 코멘트 스레드 ${groups.length}개 [${shape}] — "${arr.map((t) => t.plain_text).join('').replace(/\s+/g, ' ').slice(0, 24)}…"`);
   if (k === 1) { // 형광펜이 하나면 그 블록의 코멘트를 모두 사용
     return { list: [{ text: groups.map((g) => g.text).filter(Boolean).join('\n\n'), images: groups.flatMap((g) => g.images) }], i: 0 };
   }

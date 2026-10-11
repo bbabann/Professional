@@ -137,7 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function open(row) {
     const href = row.getAttribute('href');
-    load(new URL(href + (href.includes('?') ? '&' : '?') + 'embed', location.href).href);
+    const build = document.documentElement.dataset.build; // 배포마다 바뀌는 값 → iframe 문서도 새로 받게 함
+    load(new URL(href + (href.includes('?') ? '&' : '?') + 'embed' + (build ? '&v=' + build : ''), location.href).href);
     if (active) active.removeAttribute('aria-current');
     active = row;
     row.setAttribute('aria-current', 'true');
