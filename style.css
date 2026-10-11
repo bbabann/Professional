@@ -62,7 +62,7 @@ p{margin:0 0 16px}
 .prose blockquote{margin:24px 0;padding-left:16px;border-left:2px solid var(--border);color:var(--muted-foreground)}
 .prose code{background:var(--muted);border-radius:4px;padding:2px 6px;font-size:.88em}
 .prose pre{background:var(--muted);border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow:auto}
-.prose img{max-width:100%;border-radius:var(--radius)}
+.prose img{max-width:100%}
 .prose a{text-decoration:underline;text-underline-offset:3px}
 
 footer{padding:64px 0 40px;color:var(--muted-foreground);font-size:.85rem}
@@ -107,11 +107,11 @@ footer{padding:64px 0 40px;color:var(--muted-foreground);font-size:.85rem}
 .embed::-webkit-scrollbar{display:none}
 
 /* embed(Figma/영상) */
-.prose .embed-frame{display:block;width:100%;aspect-ratio:16/10;border:1px solid var(--border);border-radius:var(--radius);background:var(--muted)}
+.prose .embed-frame{display:block;width:100%;aspect-ratio:16/10;border:1px solid var(--border);background:var(--muted)}
 
 /* Before/After 슬라이더: 포인터로 드래그, 키보드 ←/→ 지원 */
 .compare{margin:24px 0}
-.compare-stage{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:var(--radius);cursor:ew-resize;touch-action:pan-y;user-select:none;outline:none}
+.compare-stage{position:relative;overflow:hidden;border:1px solid var(--border);cursor:ew-resize;touch-action:pan-y;user-select:none;outline:none}
 .compare-stage:focus-visible{box-shadow:0 0 0 2px var(--foreground)}
 .compare-stage img{display:block;width:100%;pointer-events:none}
 .compare-stage .compare-after{position:absolute;inset:0;height:100%;object-fit:cover;clip-path:inset(0 0 0 var(--pos))}
