@@ -42,7 +42,7 @@ p{margin:0 0 16px}
 .row{display:flex;align-items:baseline;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)}
 .row .title{flex:1;font-weight:500}
 .row .meta{color:var(--muted-foreground);font-size:.85rem;white-space:nowrap}
-.row .icon{color:var(--muted-foreground);align-self:center;transition:transform .15s}
+.row .icon{color:var(--muted-foreground);align-self:center;margin-right:-4px;transition:transform .15s} /* 화살표 모양이 SVG 박스 안쪽에 그려지는 만큼 보정 */
 .row:hover .icon{transform:translate(2px,-2px);color:var(--foreground)}
 .row .desc{display:block;color:var(--muted-foreground);font-weight:400;font-size:.9rem}
 
@@ -69,7 +69,9 @@ p{margin:0 0 16px}
 footer{padding:64px 0 40px;color:var(--muted-foreground);font-size:.85rem}
 
 /* 콘텐츠 패널: 넓은 화면은 우측 분할, 좁은 화면은 우측에서 전체 화면으로 슬라이드인(오버레이) */
-.row[aria-current]{background:var(--muted)}
+.row{position:relative;isolation:isolate}
+.row::before{content:"";position:absolute;inset:0 -12px;z-index:-1;background:var(--muted);opacity:0;transition:opacity .15s ease} /* 선택 배경만 좌우 12px 확장 → 글자·구분선은 다른 요소와 정렬 유지 */
+.row[aria-current]::before{opacity:1}
 body{transition:padding-right var(--dur) var(--ease)}
 .panel{display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;width:100%;background:var(--background);transform:translateX(100%);visibility:hidden;transition:transform var(--dur) var(--ease),visibility 0s linear var(--dur);z-index:20}
 body.split .panel{transform:none;visibility:visible;transition:transform var(--dur) var(--ease),visibility 0s}
