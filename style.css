@@ -57,7 +57,7 @@ p{margin:0 0 16px}
 .back:hover{color:var(--foreground)}
 .article-head{margin-bottom:32px}
 .article-head .meta{display:flex;gap:12px;align-items:center;color:var(--muted-foreground);font-size:.85rem}
-.prose{font-size:15px;line-height:1.85}
+.prose{font-size:15px;line-height:1.7}
 .prose h2{font-size:1.15rem;font-weight:600;color:var(--foreground);margin:36px 0 12px}
 .prose blockquote{margin:24px 0;padding-left:16px;border-left:2px solid var(--border);color:var(--muted-foreground)}
 .prose code{background:var(--muted);border-radius:4px;padding:2px 6px;font-size:.88em}
