@@ -31,6 +31,7 @@ function initNotes() {
   let current = null;
 
   const place = (x, y) => {
+    tip.dataset.x = x; tip.dataset.y = y;
     const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
     let left = x + pad, top = y + pad;
     if (left + w > window.innerWidth - 8) left = x - w - pad; // 오른쪽이 넘치면 커서 왼쪽에
@@ -40,7 +41,25 @@ function initNotes() {
   };
   const show = (mark, x, y) => {
     current = mark;
-    tip.textContent = mark.dataset.note;
+    tip.textContent = '';
+    if (mark.dataset.note) {
+      const t = document.createElement('div');
+      t.className = 'note-text';
+      t.textContent = mark.dataset.note;
+      tip.appendChild(t);
+    }
+    let imgs = [];
+    try { imgs = JSON.parse(mark.dataset.imgs || '[]'); } catch (_) { /* 무시 */ }
+    imgs.forEach((src) => {
+      const w = document.createElement('div');
+      w.className = 'note-img';
+      const im = document.createElement('img');
+      im.addEventListener('load', () => { if (current === mark && tip.dataset.x) place(+tip.dataset.x, +tip.dataset.y); });
+      im.src = src;
+      im.alt = '';
+      w.appendChild(im);
+      tip.appendChild(w);
+    });
     place(x, y);
     tip.classList.add('show');
   };

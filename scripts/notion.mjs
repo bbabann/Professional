@@ -39,7 +39,7 @@ const hlRuns = (rt = []) => rt.reduce((n, t, i) => n + (isHl(t) && !isHl(rt[i - 
 
 // notes: { list: 구간별 코멘트 문자열 배열, i: 다음 구간 번호 }
 function richText(rt = [], notes = null) {
-  let note = '';
+  let note = null;
   return rt.map((t, i) => {
     let s = esc(t.plain_text).replace(/\n/g, '<br>');
     const a = t.annotations || {};
@@ -50,8 +50,11 @@ function richText(rt = [], notes = null) {
     if (a.underline) s = `<u>${s}</u>`;
     if (t.href) s = `<a href="${esc(t.href)}" target="_blank" rel="noopener">${s}</a>`;
     if (isHl(t)) {
-      if (!isHl(rt[i - 1])) note = notes ? (notes.list[notes.i++] || '') : ''; // 새 구간 시작
-      s = note ? `<mark class="note" tabindex="0" data-note="${esc(note)}">${s}</mark>` : `<mark class="hl">${s}</mark>`;
+      if (!isHl(rt[i - 1])) note = notes ? (notes.list[notes.i++] || null) : null; // 새 구간 시작
+      const has = note && (note.text || note.images?.length);
+      s = has
+        ? `<mark class="note" tabindex="0" data-note="${esc(note.text)}"${note.images?.length ? ` data-imgs="${esc(JSON.stringify(note.images))}"` : ''}>${s}</mark>`
+        : `<mark class="hl">${s}</mark>`;
     }
     return s;
   }).join('');
@@ -61,7 +64,7 @@ function richText(rt = [], notes = null) {
 // Notion API는 코멘트가 달린 '문구'를 알려주지 않고 블록 단위로만 주므로, 문구 위치는 글에 칠한 노란 배경색으로 찾는다.
 const commentsState = { disabled: false, loggedFields: false };
 
-async function fetchBlockNotes(token, blockId) {
+async function fetchBlockNotes(token, blockId, ctx) {
   if (commentsState.disabled) return [];
   let results;
   try {
@@ -77,13 +80,21 @@ async function fetchBlockNotes(token, blockId) {
     commentsState.loggedFields = true;
     console.log('  comment fields:', Object.keys(results[0]).join(','));
   }
-  const groups = new Map(); // 같은 토론(스레드)의 답글은 하나로 묶음. API는 오래된 순으로 반환
+  // 같은 토론(스레드)의 답글은 하나로 묶음. API는 오래된 순으로 반환
+  const groups = new Map();
   for (const c of results) {
     const k = c.discussion_id || c.id;
-    if (!groups.has(k)) groups.set(k, []);
-    groups.get(k).push(plain(c.rich_text));
+    if (!groups.has(k)) groups.set(k, { texts: [], images: [] });
+    const g = groups.get(k);
+    const text = plain(c.rich_text);
+    if (text) g.texts.push(text);
+    // 코멘트에 첨부된 이미지: Notion 파일 URL은 곧 만료되므로 내려받아 저장
+    for (const a of c.attachments || []) {
+      const url = a.file?.url || a.external?.url;
+      if (url && (a.category === 'image' || /\.(png|jpe?g|gif|webp|avif|svg)(\?|$)/i.test(url))) g.images.push(await saveImage(url, ctx));
+    }
   }
-  return [...groups.values()].map((arr) => arr.filter(Boolean).join('\n\n'));
+  return [...groups.values()].map((g) => ({ text: g.texts.join('\n\n'), images: g.images }));
 }
 
 async function notesFor(b, ctx) {
@@ -93,10 +104,12 @@ async function notesFor(b, ctx) {
   const k = hlRuns(arr);
   ctx.stats.hl += k;
   if (!k) return null;
-  const groups = await fetchBlockNotes(ctx.token, b.id);
+  const groups = await fetchBlockNotes(ctx.token, b.id, ctx);
   // 진단: 형광펜 구간 수 / 코멘트 스레드 수 (문단 앞부분만 표시)
   console.log(`  · 형광펜 ${k}개 ↔ 코멘트 스레드 ${groups.length}개 — "${arr.map((t) => t.plain_text).join('').replace(/\s+/g, ' ').slice(0, 24)}…"`);
-  if (k === 1) return { list: [groups.join('\n\n')], i: 0 }; // 형광펜이 하나면 그 블록의 코멘트를 모두 사용
+  if (k === 1) { // 형광펜이 하나면 그 블록의 코멘트를 모두 사용
+    return { list: [{ text: groups.map((g) => g.text).filter(Boolean).join('\n\n'), images: groups.flatMap((g) => g.images) }], i: 0 };
+  }
   if (groups.length !== k && groups.length) console.warn(`  ! 한 문단에 형광펜 ${k}개, 코멘트 ${groups.length}개 → 작성 순서대로(왼쪽부터) 연결합니다`);
   return { list: groups.slice(0, k), i: 0 };
 }
