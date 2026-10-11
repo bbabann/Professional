@@ -58,7 +58,8 @@ p{margin:0 0 16px}
 .article-head{margin-bottom:32px}
 .article-head h1{font-family:var(--font-sans);font-weight:600;letter-spacing:-.02em} /* 본문 제목은 Pretendard(본문 폰트) */
 .article-head .meta{display:flex;gap:12px;align-items:center;color:var(--muted-foreground);font-size:.85rem}
-.prose{font-size:15px;line-height:1.7;color:var(--prose-foreground)}
+.prose{font-size:15px;line-height:1.7;letter-spacing:-.25px;color:var(--prose-foreground)}
+.prose code,.prose pre{letter-spacing:0} /* 고정폭 코드는 자간 유지 */
 .prose h2{font-size:1.15rem;font-weight:600;color:var(--foreground);margin:36px 0 12px}
 .prose blockquote{margin:24px 0;padding-left:16px;border-left:2px solid var(--border);color:var(--muted-foreground)}
 .prose code{background:var(--muted);border-radius:4px;padding:2px 6px;font-size:.88em}
