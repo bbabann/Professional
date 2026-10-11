@@ -126,14 +126,27 @@ footer{padding:64px 0 40px;color:var(--muted-foreground);font-size:.85rem}
 .prose .column>:last-child{margin-bottom:0}
 @media (max-width:640px){.prose .columns{grid-template-columns:1fr}}
 
-/* 페이지 커버: 첫 화면을 뷰포트 높이로 꽉 채움 (좌우도 화면 끝까지) */
+/* 페이지 커버: 첫 화면을 뷰포트 높이로 채우고, 스크롤하면 본문 시트가 위로 덮음 */
 html{overflow-x:clip}
-.cover{position:relative;margin:0 0 0 calc(50% - 50vw);width:100vw;height:calc(100svh - var(--bar-h));background:var(--muted);overflow:hidden}
-.embed .cover{height:100svh}
-.cover img{display:block;width:100%;height:100%;object-fit:cover}
-.cover-cue{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);color:#fff;filter:drop-shadow(0 1px 3px rgba(0,0,0,.55))}
+:root{--sheet-pad:max(24px,calc((100vw - 640px) / 2))}
+.embed{--sheet-pad:var(--gutter)}
+.cover{--p:0;position:sticky;top:0;z-index:0;margin:0 0 0 calc(50% - 50vw);width:100vw;height:100svh;background:var(--muted);overflow:hidden;
+  transform:scale(calc(1 - var(--p) * .06));transform-origin:50% 0;border-radius:calc(var(--p) * 24px)}
+.cover img{display:block;width:100%;height:100%;object-fit:cover;
+  transform:translateY(calc(var(--p) * -4%)) scale(calc(1.02 + var(--p) * .1))}
+.cover::after{content:"";position:absolute;inset:0;background:#000;opacity:calc(var(--p) * .55);pointer-events:none}
+.cover-cue{position:absolute;left:50%;bottom:52px;transform:translateX(-50%);color:#fff;filter:drop-shadow(0 1px 3px rgba(0,0,0,.55));opacity:max(0,calc(1 - var(--p) * 6));z-index:1}
 .cover-cue .icon{width:24px;height:24px}
-.has-cover .hero{padding-top:72px !important}
+/* 본문 시트: 커버를 덮으며 올라옴. 첫 화면 아래쪽에 둥근 모서리가 살짝 보임 */
+.has-cover .hero{position:relative;z-index:1;margin:-24px 0 0 calc(50% - 50vw);width:100vw;padding:72px var(--sheet-pad) 0 !important;background:var(--background);border-radius:24px 24px 0 0}
+
+/* 제목 reveal */
+.js-motion .rv{opacity:0;transform:translateY(20px);transition:opacity .8s var(--ease),transform .9s var(--ease);transition-delay:calc(var(--i) * 110ms)}
+.js-motion .rv.in{opacity:1;transform:none}
+.js-motion h1.rv{opacity:1;transform:none;transition:none}
+.mask{display:block;overflow:hidden;padding-bottom:.12em;margin-bottom:-.12em}
+.js-motion h1.rv .rise{display:block;transform:translateY(110%);transition:transform 1s var(--ease)}
+.js-motion h1.rv.in .rise{transform:none}
 @media (min-width:1100px){
   /* 닫기 버튼이 이미지 위에서도 보이도록 반투명 배경 */
   .panel-close{background:color-mix(in srgb,var(--background) 75%,transparent);backdrop-filter:blur(8px)}

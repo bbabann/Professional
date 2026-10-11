@@ -1,6 +1,39 @@
 // embed 모드(패널 안에서 열린 페이지)면 내비/푸터를 숨김. 깜빡임 방지를 위해 <head>에서 즉시 실행
 if (new URLSearchParams(location.search).has('embed')) document.documentElement.classList.add('embed');
 
+// 스크롤 연출은 '동작 줄이기' 설정이 꺼져 있고 IntersectionObserver를 쓸 수 있을 때만 켠다
+const motionOK = !window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window;
+if (motionOK) document.documentElement.classList.add('js-motion');
+
+
+// 커버: 스크롤 진행도(--p: 0~1)를 CSS 변수로 전달 → 축소/어두워짐/이미지 확대·이동은 CSS에서 처리
+function initCover() {
+  const cover = document.querySelector('.cover');
+  if (!cover || !motionOK) return;
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const p = Math.max(0, Math.min(1, window.scrollY / window.innerHeight));
+    cover.style.setProperty('--p', p.toFixed(4));
+  };
+  window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  update();
+}
+
+// 제목 reveal: 제목은 마스크 안에서 올라오고, 날짜/첫 문단은 순서대로 페이드업
+function initReveal() {
+  if (!motionOK) return;
+  const h1 = document.querySelector('.article-head h1');
+  if (!h1) return;
+  h1.innerHTML = '<span class="mask"><span class="rise">' + h1.innerHTML + '</span></span>';
+  const targets = [h1, document.querySelector('.article-head .meta'), document.querySelector('.prose > *')].filter(Boolean);
+  targets.forEach((el, i) => { el.classList.add('rv'); el.style.setProperty('--i', i); });
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.25 });
+  targets.forEach((el) => io.observe(el));
+}
+
 function initCompare(stage) {
   const fig = stage.parentElement;
   let dragging = false;
@@ -23,6 +56,8 @@ function initCompare(stage) {
 
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.compare-stage').forEach(initCompare);
+  initCover();
+  initReveal();
   if (document.documentElement.classList.contains('embed')) return;
 
   const wide = window.matchMedia('(min-width: 1100px)');
