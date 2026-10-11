@@ -56,6 +56,7 @@ p{margin:0 0 16px}
 .back{display:inline-flex;align-items:center;gap:6px;color:var(--muted-foreground);font-size:.875rem;margin-bottom:32px}
 .back:hover{color:var(--foreground)}
 .article-head{margin-bottom:32px}
+.article-head h1{font-family:var(--font-sans);font-weight:600;letter-spacing:-.02em} /* 본문 제목은 Pretendard(본문 폰트) */
 .article-head .meta{display:flex;gap:12px;align-items:center;color:var(--muted-foreground);font-size:.85rem}
 .prose{font-size:15px;line-height:1.7}
 .prose h2{font-size:1.15rem;font-weight:600;color:var(--foreground);margin:36px 0 12px}
