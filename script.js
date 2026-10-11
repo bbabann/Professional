@@ -59,17 +59,25 @@ document.addEventListener('DOMContentLoaded', () => {
   let active = null;
   frame.addEventListener('load', () => frame.classList.add('ready'));
 
+  // iframe 이동이 브라우저 히스토리를 쌓으면 ✕(뒤로가기)가 패널 대신 iframe부터 되돌리므로, 항상 location.replace로 이동
+  let current = '';
+  function load(url) {
+    // 히스토리 이동(뒤로가기)으로 iframe 내용이 바뀌어 있을 수 있으므로, 기억해 둔 값이 아니라 iframe의 실제 주소로 비교
+    let actual = current;
+    try { actual = frame.contentWindow.location.href; } catch (_) { /* file:// 등 접근 불가 시 기억한 값 사용 */ }
+    if (actual === url) return; // 같은 항목이면 재로딩 없음
+    current = url;
+    frame.classList.remove('ready'); // 새 콘텐츠는 로드 후 페이드인
+    try { frame.contentWindow.location.replace(url); } catch (_) { frame.src = url; }
+  }
+
   function open(row) {
     const href = row.getAttribute('href');
-    const next = href + (href.includes('?') ? '&' : '?') + 'embed';
-    if (!frame.getAttribute('src') || !frame.src.endsWith(next)) {
-      frame.classList.remove('ready'); // 새 콘텐츠는 로드 후 페이드인
-      frame.src = next;
-    }
+    load(new URL(href + (href.includes('?') ? '&' : '?') + 'embed', location.href).href);
     if (active) active.removeAttribute('aria-current');
     active = row;
     row.setAttribute('aria-current', 'true');
-    if (!document.body.classList.contains('split')) history.pushState({ panel: true }, '');
+    if (!pushed) { history.pushState({ panel: true }, ''); pushed = true; }
     document.body.classList.add('split');
     panel.setAttribute('aria-hidden', 'false');
   }
@@ -80,12 +88,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (active) active.removeAttribute('aria-current');
     active = null; // src는 유지: 닫히는 동안 내용이 비지 않고, 같은 항목을 다시 열면 재로딩 없음
   }
-  // 패널을 열 때 히스토리 한 칸을 쌓아서, 모바일의 뒤로가기/스와이프로도 패널이 닫히게 함
+  // 패널을 열 때 히스토리를 한 칸만 쌓아서, 모바일의 뒤로가기/스와이프로도 패널이 닫히게 함
+  let pushed = false;
+  if (history.state && history.state.panel) history.replaceState(null, ''); // 새로고침 등으로 남은 낡은 상태 정리
   function close() {
-    if (history.state && history.state.panel) history.back(); // popstate에서 hide()
-    else hide();
+    if (pushed) {
+      history.back(); // popstate에서 hide()
+      setTimeout(() => { if (document.body.classList.contains('split')) { hide(); pushed = false; } }, 500); // 안전장치
+    } else hide();
   }
-  window.addEventListener('popstate', () => { if (document.body.classList.contains('split')) hide(); });
+  window.addEventListener('popstate', () => { pushed = false; if (document.body.classList.contains('split')) hide(); });
 
   document.addEventListener('click', (e) => {
     const row = e.target.closest('a.row[data-panel]');
