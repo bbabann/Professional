@@ -52,5 +52,27 @@ NOTION_TOKEN=secret_xxx NOTION_DATABASE_ID=xxxx node scripts/build.mjs
 - **Before/After 슬라이더**: 이미지 블록 2개를 연달아 넣고 캡션을 `@compare As-is`, `@compare To-be`로 작성 (`@compare` 뒤 글자가 라벨. 비우면 As-is / To-be). 마우스·터치 드래그, 키보드 ←/→ 지원.
 - **임베드**: Notion에서 `/embed`(또는 `/video`)로 링크를 넣으면 iframe으로 표시. Figma 프로토타입·YouTube·Vimeo는 자동으로 임베드 주소로 변환. `https` 링크만 지원. (북마크로 붙이면 일반 링크로만 나옴)
 
+## 자주 쓰는 명령어 (맥 터미널)
+```bash
+# 1회 설정: GitHub CLI 설치 및 로그인
+brew install gh
+gh auth login
+
+# 배포 실행 (Notion 글 수정 후 바로 반영하고 싶을 때)
+gh workflow run deploy.yml -R bbabann/Professional
+
+# 진행 상황 보기
+gh run watch -R bbabann/Professional
+
+# 권한 에러가 날 때
+gh auth refresh -s workflow
+
+# 짧은 이름으로 줄이기 (이후 터미널에서 deploy 만 입력)
+echo "alias deploy='gh workflow run deploy.yml -R bbabann/Professional'" >> ~/.zshrc && source ~/.zshrc
+```
+- 코드 변경을 푸시하면 자동 배포되므로 위 명령은 **Notion 글을 고쳤을 때**만 필요.
+- 브라우저로 할 때: https://github.com/bbabann/Professional/actions/workflows/deploy.yml → Run workflow
+- 터미널 기록 검색: `Ctrl+R` 후 `workflow` 입력
+
 ## 폰트
 `<html data-font="pretendard|suite">` 로 전환 (비교용). 헤드라인만 Newsreader.
