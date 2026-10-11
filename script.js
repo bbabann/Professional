@@ -45,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initReveal();
   if (document.documentElement.classList.contains('embed')) return;
 
-  const wide = window.matchMedia('(min-width: 1100px)');
   const X = '<svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
 
   const panel = document.createElement('aside');
@@ -70,25 +69,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (active) active.removeAttribute('aria-current');
     active = row;
     row.setAttribute('aria-current', 'true');
+    if (!document.body.classList.contains('split')) history.pushState({ panel: true }, '');
     document.body.classList.add('split');
     panel.setAttribute('aria-hidden', 'false');
   }
 
-  function close() {
+  function hide() {
     document.body.classList.remove('split');
     panel.setAttribute('aria-hidden', 'true');
     if (active) active.removeAttribute('aria-current');
     active = null; // src는 유지: 닫히는 동안 내용이 비지 않고, 같은 항목을 다시 열면 재로딩 없음
   }
+  // 패널을 열 때 히스토리 한 칸을 쌓아서, 모바일의 뒤로가기/스와이프로도 패널이 닫히게 함
+  function close() {
+    if (history.state && history.state.panel) history.back(); // popstate에서 hide()
+    else hide();
+  }
+  window.addEventListener('popstate', () => { if (document.body.classList.contains('split')) hide(); });
 
   document.addEventListener('click', (e) => {
     const row = e.target.closest('a.row[data-panel]');
-    if (!row || !wide.matches || e.metaKey || e.ctrlKey || e.shiftKey) return; // 좁은 화면/새 탭 클릭은 기본 이동
+    if (!row || e.metaKey || e.ctrlKey || e.shiftKey) return; // 새 탭으로 여는 클릭은 기본 동작
     e.preventDefault();
     if (row === active) close(); // 이미 선택된 항목을 다시 누르면 선택 해제(패널 닫기)
     else open(row);
   });
   panel.querySelector('.panel-close').addEventListener('click', close);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
-  wide.addEventListener('change', (e) => { if (!e.matches) close(); });
 });
