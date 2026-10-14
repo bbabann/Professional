@@ -39,14 +39,14 @@ p{margin:0 0 16px}
 
 /* rows: 작업/글 공통 리스트 */
 .rows{margin:0}
-.row{display:flex;align-items:baseline;gap:16px;padding:12px 0;transition:opacity .25s ease}
+.row{display:flex;align-items:baseline;gap:16px;padding:8px 12px;margin:0 -12px;border-radius:var(--radius);transition:background-color .2s ease}
 .row .title{flex:1;font-weight:500}
 .row .meta{color:var(--muted-foreground);font-size:.85rem;white-space:nowrap}
 .row .icon{color:var(--muted-foreground);align-self:center;transition:transform .15s}
 .row:hover .icon{transform:translate(2px,-2px);color:var(--foreground)}
 .row .desc{display:block;color:var(--muted-foreground);font-weight:400;font-size:.9rem;margin-top:2px}
-/* PC: 호버한 항목만 또렷하게, 나머지는 딤 처리 */
-@media (hover:hover) and (pointer:fine){main:has(.row:hover) .row:not(:hover){opacity:.35}}
+/* PC: 호버한 항목 배경만 살짝 그레이로 */
+@media (hover:hover) and (pointer:fine){.row:hover{background:var(--muted)}}
 
 /* badge / button */
 .badge{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:0 10px;font-size:.75rem;color:var(--muted-foreground)}
