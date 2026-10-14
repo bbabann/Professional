@@ -72,7 +72,7 @@ function initNotes() {
     m.addEventListener('mouseenter', (e) => { if (!touchOnly.matches) show(m, e.clientX, e.clientY); });
     m.addEventListener('mousemove', (e) => { if (current === m && !touchOnly.matches) place(e.clientX, e.clientY); });
     m.addEventListener('mouseleave', () => { if (current === m) hide(); });
-    m.addEventListener('focus', () => { const r = m.getBoundingClientRect(); show(m, r.left, r.bottom); });
+    m.addEventListener('focus', () => { if (touchOnly.matches) return; /* 터치: 포커스가 먼저 열고 click이 다시 닫아 두 번 탭해야 열리던 문제 방지 */ const r = m.getBoundingClientRect(); show(m, r.left, r.bottom); });
     m.addEventListener('blur', () => { if (current === m) hide(); });
     m.addEventListener('click', (e) => {
       if (!touchOnly.matches) return;
