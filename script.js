@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (document.documentElement.classList.contains('embed')) {
     // 패널 안: 이미지는 width/height로 영역이 미리 잡혀 그레이 스켈레톤으로 보이고, 로드되면 페이드인. 맨 위 2장은 지연 로딩 없이 바로 받음
     document.querySelectorAll('.prose img').forEach((img, i) => { if (i < 2) img.loading = 'eager'; });
-    parent.postMessage({ embedReady: true }, '*');
+    parent.postMessage({ embedReady: location.href }, '*');
     return;
   }
 
@@ -153,7 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const reveal = () => { if (loaded && slid) frame.classList.add('ready'); };
   // 정상 경로는 iframe이 보내는 embedReady 메시지. 메시지가 안 오는 경우(file:// 등)를 위해 load 후 일정 시간 뒤 폴백
   let fallback = 0;
-  window.addEventListener('message', (e) => { if (e.source === frame.contentWindow && e.data && e.data.embedReady) { loaded = true; reveal(); } });
+  window.addEventListener('message', (e) => { if (e.source === frame.contentWindow && e.data && e.data.embedReady === current) { // 이전 문서가 뒤늦게 보낸 메시지는 무시(주소 비교)
+       loaded = true; reveal(); } });
   frame.addEventListener('load', () => { clearTimeout(fallback); fallback = setTimeout(() => { loaded = true; reveal(); }, 5000); });
   panel.addEventListener('transitionend', (e) => { if (e.target === panel && e.propertyName === 'transform') { slid = true; reveal(); } });
 
@@ -167,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     current = url;
     // 이전 항목(닫혀 있는 동안 남겨 둔 내용)이 슬라이드인 중에 비치지 않도록 페이드아웃 없이 즉시 숨기고, 새 콘텐츠는 로드 후 페이드인
     loaded = false;
+    clearTimeout(fallback);
     frame.style.transition = 'none';
     frame.classList.remove('ready');
     void frame.offsetWidth; // 즉시 반영
