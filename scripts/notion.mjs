@@ -139,6 +139,7 @@ function imgSize(b) {
   } catch (_) { /* 크기를 모르면 속성 없이 출력 */ }
   return null;
 }
+const phWrap = (ctx, src, img) => { const d = ctx.sizes && ctx.sizes[src]; return d && d.w && d.h ? `<span class="ph" style="max-width:${d.w}px">${img}</span>` : img; };
 const sizeAttr = (ctx, src) => { const d = ctx.sizes && ctx.sizes[src]; return d && d.w && d.h ? ` width="${d.w}" height="${d.h}"` : ''; };
 
 // Notion 파일 URL은 약 1시간 후 만료되므로 빌드 시 내려받아 정적 자산으로 저장
@@ -245,7 +246,7 @@ async function renderBlocks(blocks = [], ctx) {
         }
         const src = await saveImage(imageUrl(d), ctx);
         const cap = plain(d.caption).replace(COMPARE, '');
-        html += `<figure><img src="${esc(src)}"${sizeAttr(ctx, src)} alt="${esc(cap)}" loading="lazy">${cap ? `<figcaption>${richText(d.caption)}</figcaption>` : ''}</figure>\n`;
+        html += `<figure>${phWrap(ctx, src, `<img src="${esc(src)}"${sizeAttr(ctx, src)} alt="${esc(cap)}" loading="lazy">`)}${cap ? `<figcaption>${richText(d.caption)}</figcaption>` : ''}</figure>\n`;
         break;
       }
       case 'embed': case 'video': {

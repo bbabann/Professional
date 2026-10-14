@@ -66,10 +66,12 @@ p{margin:0 0 16px}
 .prose blockquote{margin:24px 0;padding-left:16px;border-left:2px solid var(--border);color:var(--muted-foreground)}
 .prose code{background:var(--muted);border-radius:4px;padding:2px 6px;font-size:.88em}
 .prose pre{background:var(--muted);border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow:auto}
-.prose img{display:block;max-width:100%;height:auto;margin:0 auto}
-.prose img:not(.loaded){background:var(--muted)} /* 로드 전: width/height로 영역을 미리 잡고 그레이 스켈레톤 */
-.prose img.loaded{animation:img-in .3s ease}
-@keyframes img-in{from{opacity:0}} /* 인라인 이미지 아래의 미세한 틈 제거 */
+.prose img{display:block;max-width:100%;height:auto;margin:0 auto} /* 인라인 이미지 아래의 미세한 틈 제거 */
+.prose .ph{display:block;margin:0 auto;background:var(--muted);transition:background-color .3s ease} /* 로드 전 그레이 스켈레톤(영역은 width/height로 확보) */
+.prose .ph img{width:100%}
+.js .prose .ph img{opacity:0;transition:opacity .3s ease}
+.js .prose .ph img.loaded{opacity:1}
+.prose .ph:has(img.loaded){background-color:transparent}
 .prose a{text-decoration:underline;text-underline-offset:3px}
 
 footer{padding:64px 0 40px;color:var(--muted-foreground);font-size:.85rem}

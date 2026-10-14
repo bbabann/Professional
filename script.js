@@ -1,6 +1,8 @@
 // embed 모드(패널 안에서 열린 페이지)면 내비/푸터를 숨김. 깜빡임 방지를 위해 <head>에서 즉시 실행
 if (new URLSearchParams(location.search).has('embed')) document.documentElement.classList.add('embed');
 
+document.documentElement.classList.add('js');
+
 // 제목 reveal은 '동작 줄이기' 설정이 꺼져 있고 IntersectionObserver를 쓸 수 있을 때만 켠다
 const motionOK = !window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window;
 if (motionOK) document.documentElement.classList.add('js-motion');
@@ -105,7 +107,7 @@ function initCompare(stage) {
 
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.prose img').forEach((img) => {
-    const done = () => img.classList.add('loaded');
+    const done = () => (img.decode ? img.decode() : Promise.resolve()).catch(() => {}).then(() => img.classList.add('loaded')); // 디코딩까지 끝낸 뒤 페이드인해 깜빡임 방지
     if (img.complete && img.naturalWidth) img.classList.add('loaded'); // 캐시된 이미지는 애니메이션 없이 바로
     else { img.addEventListener('load', done, { once: true }); img.addEventListener('error', done, { once: true }); }
   });
