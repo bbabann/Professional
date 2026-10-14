@@ -49,7 +49,9 @@ function initNotes() {
     tip.style.top = Math.max(8, Math.min(top, window.innerHeight - h - 8)) + 'px';
   };
   const show = (mark, x, y) => {
+    if (current && current !== mark) current.classList.remove('open');
     current = mark;
+    mark.classList.add('open'); // 팝업이 열려 있는 동안 밑줄을 실선으로
     tip.textContent = '';
     if (mark.dataset.note) {
       const t = document.createElement('div');
@@ -76,6 +78,7 @@ function initNotes() {
     const m = current;
     current = null;
     tip.classList.remove('show');
+    if (m) m.classList.remove('open');
     if (m && document.activeElement === m) m.blur(); // 팝업이 닫히면 밑줄 포커스도 해제
   };
   const touchOnly = window.matchMedia('(hover: none)');

@@ -156,7 +156,7 @@ body.split{overflow:hidden} /* 좁은 화면: 열려 있는 동안 뒤 페이지
 .prose mark.hl,.prose mark.note{text-decoration:underline dotted;text-decoration-color:var(--foreground);text-decoration-thickness:1px;text-underline-offset:3px;text-decoration-skip-ink:none} /* 작고 촘촘한 검은 점선 밑줄 */
 .prose mark.note{cursor:help;outline:none}
 @media (hover:hover){.prose mark.note:hover{text-decoration-style:solid}}
-.prose mark.note:focus-visible{text-decoration-style:solid}
+.prose mark.note.open,.prose mark.note:focus-visible{text-decoration-style:solid}
 .note-tip{position:fixed;z-index:50;left:0;top:0;max-width:min(320px,calc(100vw - 16px));background:rgba(24,24,27,.82);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;border-radius:var(--radius);box-shadow:0 2px 8px rgba(0,0,0,.08);font-size:13px;line-height:1.55;letter-spacing:0;word-break:keep-all;overflow-wrap:anywhere;overflow:hidden;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .12s ease,transform .12s ease}
 .note-text{padding:10px 12px;white-space:pre-wrap}
 .note-img{padding:0} /* 이미지 코멘트: 여백 없이 꽉 차게 */
