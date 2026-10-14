@@ -39,7 +39,7 @@ p{margin:0 0 16px}
 
 /* rows: 작업/글 공통 리스트 */
 .rows{margin:0}
-.row{display:grid;grid-template-columns:minmax(0,auto) auto auto 1fr;align-items:baseline;column-gap:16px;padding:8px 12px;margin:0 -12px;border-radius:var(--radius);transition:background-color .2s ease}
+.row{display:grid;grid-template-columns:minmax(0,auto) auto auto 1fr;align-items:baseline;column-gap:8px;padding:8px 12px;margin:0 -12px;border-radius:var(--radius);transition:background-color .2s ease}
 .row .title{display:contents;font-weight:500} /* 이름·메타·화살표를 한 줄로 붙이고 설명은 아래 줄 */
 .row .meta{color:var(--muted-foreground);font-size:.85rem;white-space:nowrap}
 .row .icon{color:var(--muted-foreground);align-self:center;transition:transform .15s}
