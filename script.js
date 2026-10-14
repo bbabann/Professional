@@ -107,7 +107,19 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.compare-stage').forEach(initCompare);
   initReveal();
   initNotes();
-  if (document.documentElement.classList.contains('embed')) return;
+  if (document.documentElement.classList.contains('embed')) {
+    // 패널 안: 맨 위 이미지 2장이 로드될 때까지 부모가 빈 화면을 유지하고, 준비되면 알려서 함께 페이드인되게 함 (이미지 로딩에 따른 레이아웃 변화 노출 방지)
+    const imgs = [...document.querySelectorAll('.prose img')].slice(0, 2);
+    const ready = (img) => new Promise((res) => {
+      img.loading = 'eager';
+      if (img.complete) return res();
+      img.addEventListener('load', res, { once: true });
+      img.addEventListener('error', res, { once: true });
+    });
+    const timeout = new Promise((res) => setTimeout(res, 4000)); // 이미지가 끝내 안 오면 4초 뒤 그냥 표시
+    Promise.race([Promise.all(imgs.map(ready)), timeout]).then(() => parent.postMessage({ embedReady: true }, '*'));
+    return;
+  }
 
   const X = '<svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
 
@@ -121,7 +133,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const frame = panel.querySelector('iframe');
   let active = null;
-  frame.addEventListener('load', () => frame.classList.add('ready'));
+  // 패널이 다 열리고(slid) 새 콘텐츠가 로드(loaded)된 뒤에만 내용을 페이드인 → 여는 동안 빈 화면 유지, 레이아웃 변화 노출 없음
+  let loaded = true, slid = true, slideTimer = 0;
+  const reveal = () => { if (loaded && slid) frame.classList.add('ready'); };
+  // 정상 경로는 iframe이 보내는 embedReady 메시지. 메시지가 안 오는 경우(file:// 등)를 위해 load 후 일정 시간 뒤 폴백
+  let fallback = 0;
+  window.addEventListener('message', (e) => { if (e.source === frame.contentWindow && e.data && e.data.embedReady) { loaded = true; reveal(); } });
+  frame.addEventListener('load', () => { clearTimeout(fallback); fallback = setTimeout(() => { loaded = true; reveal(); }, 5000); });
+  panel.addEventListener('transitionend', (e) => { if (e.target === panel && e.propertyName === 'transform') { slid = true; reveal(); } });
 
   // iframe 이동이 브라우저 히스토리를 쌓으면 ✕(뒤로가기)가 패널 대신 iframe부터 되돌리므로, 항상 location.replace로 이동
   let current = '';
@@ -132,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (actual === url) return; // 같은 항목이면 재로딩 없음
     current = url;
     // 이전 항목(닫혀 있는 동안 남겨 둔 내용)이 슬라이드인 중에 비치지 않도록 페이드아웃 없이 즉시 숨기고, 새 콘텐츠는 로드 후 페이드인
+    loaded = false;
     frame.style.transition = 'none';
     frame.classList.remove('ready');
     void frame.offsetWidth; // 즉시 반영
@@ -146,6 +166,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (active) active.removeAttribute('aria-current');
     active = row;
     row.setAttribute('aria-current', 'true');
+    if (!document.body.classList.contains('split')) { // 닫혀 있다가 열림: 슬라이드가 끝날 때까지 내용 숨김(transitionend 누락 대비 타이머 병행)
+      slid = false;
+      clearTimeout(slideTimer);
+      slideTimer = setTimeout(() => { slid = true; reveal(); }, 700);
+    }
     if (!pushed) { history.pushState({ panel: true }, ''); pushed = true; }
     document.body.classList.add('split');
     panel.setAttribute('aria-hidden', 'false');
