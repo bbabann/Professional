@@ -116,6 +116,31 @@ async function notesFor(b, ctx) {
   return { list: groups.slice(0, k), i: 0 };
 }
 
+// 이미지 파일 헤더에서 가로/세로 크기를 읽음(의존성 없이 PNG/JPEG/GIF/WebP). 로딩 전에 영역을 미리 잡는 스켈레톤용
+function imgSize(b) {
+  try {
+    if (b.length > 24 && b.readUInt32BE(0) === 0x89504e47) return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+    if (b.toString('latin1', 0, 3) === 'GIF') return { w: b.readUInt16LE(6), h: b.readUInt16LE(8) };
+    if (b.toString('latin1', 0, 4) === 'RIFF' && b.toString('latin1', 8, 12) === 'WEBP') {
+      const f = b.toString('latin1', 12, 16);
+      if (f === 'VP8X') return { w: 1 + b.readUIntLE(24, 3), h: 1 + b.readUIntLE(27, 3) };
+      if (f === 'VP8L') { const v = b.readUInt32LE(21); return { w: (v & 0x3fff) + 1, h: ((v >> 14) & 0x3fff) + 1 }; }
+      if (f === 'VP8 ') return { w: b.readUInt16LE(26) & 0x3fff, h: b.readUInt16LE(28) & 0x3fff };
+    }
+    if (b[0] === 0xff && b[1] === 0xd8) {
+      let o = 2;
+      while (o + 9 < b.length) {
+        if (b[o] !== 0xff) { o++; continue; }
+        const m = b[o + 1];
+        if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) return { w: b.readUInt16BE(o + 7), h: b.readUInt16BE(o + 5) };
+        o += 2 + b.readUInt16BE(o + 2);
+      }
+    }
+  } catch (_) { /* 크기를 모르면 속성 없이 출력 */ }
+  return null;
+}
+const sizeAttr = (ctx, src) => { const d = ctx.sizes && ctx.sizes[src]; return d && d.w && d.h ? ` width="${d.w}" height="${d.h}"` : ''; };
+
 // Notion 파일 URL은 약 1시간 후 만료되므로 빌드 시 내려받아 정적 자산으로 저장
 async function saveImage(url, ctx) {
   try {
@@ -127,8 +152,11 @@ async function saveImage(url, ctx) {
     const name = `${++ctx.imageCount}${ext}`;
     const dir = path.join(ctx.outDir, 'assets', ctx.dir, ctx.slug);
     await mkdir(dir, { recursive: true });
-    await writeFile(path.join(dir, name), Buffer.from(await res.arrayBuffer()));
-    return `../assets/${ctx.dir}/${ctx.slug}/${name}`;
+    const buf = Buffer.from(await res.arrayBuffer());
+    await writeFile(path.join(dir, name), buf);
+    const src = `../assets/${ctx.dir}/${ctx.slug}/${name}`;
+    (ctx.sizes ||= {})[src] = imgSize(buf);
+    return src;
   } catch (e) {
     console.warn(`  ! image download failed (${e.message}), keeping remote URL`);
     return url;
@@ -210,14 +238,14 @@ async function renderBlocks(blocks = [], ctx) {
           const labelC = plain(c.image.caption).replace(COMPARE, '') || 'To-be';
           const [srcA, srcC] = [await saveImage(imageUrl(a.image), ctx), await saveImage(imageUrl(c.image), ctx)];
           html += `<figure class="compare" style="--pos:50%"><div class="compare-stage" tabindex="0" role="slider" aria-label="${esc(labelA)} / ${esc(labelC)} 비교" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">` +
-            `<img class="compare-before" src="${esc(srcA)}" alt="${esc(labelA)}" loading="lazy"><img class="compare-after" src="${esc(srcC)}" alt="${esc(labelC)}" loading="lazy">` +
+            `<img class="compare-before" src="${esc(srcA)}"${sizeAttr(ctx, srcA)} alt="${esc(labelA)}" loading="lazy"><img class="compare-after" src="${esc(srcC)}" alt="${esc(labelC)}" loading="lazy">` +
             `<span class="compare-label compare-label-l">${esc(labelA)}</span><span class="compare-label compare-label-r">${esc(labelC)}</span><span class="compare-handle"></span></div></figure>\n`;
           i++; // 두 번째 이미지는 소비됨
           break;
         }
         const src = await saveImage(imageUrl(d), ctx);
         const cap = plain(d.caption).replace(COMPARE, '');
-        html += `<figure><img src="${esc(src)}" alt="${esc(cap)}" loading="lazy">${cap ? `<figcaption>${richText(d.caption)}</figcaption>` : ''}</figure>\n`;
+        html += `<figure><img src="${esc(src)}"${sizeAttr(ctx, src)} alt="${esc(cap)}" loading="lazy">${cap ? `<figcaption>${richText(d.caption)}</figcaption>` : ''}</figure>\n`;
         break;
       }
       case 'embed': case 'video': {

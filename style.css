@@ -66,7 +66,10 @@ p{margin:0 0 16px}
 .prose blockquote{margin:24px 0;padding-left:16px;border-left:2px solid var(--border);color:var(--muted-foreground)}
 .prose code{background:var(--muted);border-radius:4px;padding:2px 6px;font-size:.88em}
 .prose pre{background:var(--muted);border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow:auto}
-.prose img{display:block;max-width:100%;margin:0 auto} /* 인라인 이미지 아래의 미세한 틈 제거 */
+.prose img{display:block;max-width:100%;height:auto;margin:0 auto}
+.prose img:not(.loaded){background:var(--muted)} /* 로드 전: width/height로 영역을 미리 잡고 그레이 스켈레톤 */
+.prose img.loaded{animation:img-in .3s ease}
+@keyframes img-in{from{opacity:0}} /* 인라인 이미지 아래의 미세한 틈 제거 */
 .prose a{text-decoration:underline;text-underline-offset:3px}
 
 footer{padding:64px 0 40px;color:var(--muted-foreground);font-size:.85rem}

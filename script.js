@@ -104,20 +104,18 @@ function initCompare(stage) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.prose img').forEach((img) => {
+    const done = () => img.classList.add('loaded');
+    if (img.complete && img.naturalWidth) img.classList.add('loaded'); // 캐시된 이미지는 애니메이션 없이 바로
+    else { img.addEventListener('load', done, { once: true }); img.addEventListener('error', done, { once: true }); }
+  });
   document.querySelectorAll('.compare-stage').forEach(initCompare);
   initReveal();
   initNotes();
   if (document.documentElement.classList.contains('embed')) {
-    // 패널 안: 맨 위 이미지 2장이 로드될 때까지 부모가 빈 화면을 유지하고, 준비되면 알려서 함께 페이드인되게 함 (이미지 로딩에 따른 레이아웃 변화 노출 방지)
-    const imgs = [...document.querySelectorAll('.prose img')].slice(0, 2);
-    const ready = (img) => new Promise((res) => {
-      img.loading = 'eager';
-      if (img.complete) return res();
-      img.addEventListener('load', res, { once: true });
-      img.addEventListener('error', res, { once: true });
-    });
-    const timeout = new Promise((res) => setTimeout(res, 4000)); // 이미지가 끝내 안 오면 4초 뒤 그냥 표시
-    Promise.race([Promise.all(imgs.map(ready)), timeout]).then(() => parent.postMessage({ embedReady: true }, '*'));
+    // 패널 안: 이미지는 width/height로 영역이 미리 잡혀 그레이 스켈레톤으로 보이고, 로드되면 페이드인. 맨 위 2장은 지연 로딩 없이 바로 받음
+    document.querySelectorAll('.prose img').forEach((img, i) => { if (i < 2) img.loading = 'eager'; });
+    parent.postMessage({ embedReady: true }, '*');
     return;
   }
 
