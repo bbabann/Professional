@@ -142,6 +142,17 @@ function imgSize(b) {
 const phWrap = (ctx, src, img) => { const d = ctx.sizes && ctx.sizes[src]; return d && d.w && d.h ? `<span class="ph" style="max-width:${d.w}px">${img}</span>` : img; };
 const sizeAttr = (ctx, src) => { const d = ctx.sizes && ctx.sizes[src]; return d && d.w && d.h ? ` width="${d.w}" height="${d.h}"` : ''; };
 
+// 모바일 용량 절감: 가로 1600px 상한 + WebP(움직이는 GIF는 애니메이션 WebP)로 변환. 결과가 더 크거나 sharp가 없으면 원본 유지
+let sharpMod;
+async function optimize(buf, ext) {
+  if (!/^\.(png|jpe?g|gif|webp)$/.test(ext)) return null;
+  try {
+    sharpMod ??= (await import('sharp')).default;
+    const out = await sharpMod(buf, { animated: true }).resize({ width: 1600, withoutEnlargement: true }).webp({ quality: 80, effort: 4 }).toBuffer();
+    return out.length < buf.length ? out : null;
+  } catch (e) { sharpMod = sharpMod || null; return null; }
+}
+
 // Notion 파일 URL은 약 1시간 후 만료되므로 빌드 시 내려받아 정적 자산으로 저장
 async function saveImage(url, ctx) {
   try {
@@ -150,10 +161,12 @@ async function saveImage(url, ctx) {
     const type = res.headers.get('content-type') || '';
     let ext = path.extname(new URL(url).pathname).toLowerCase();
     if (!/^\.(png|jpe?g|gif|webp|svg|avif)$/.test(ext)) ext = '.' + (type.split('/')[1] || 'png').split(';')[0].replace('jpeg', 'jpg').replace('svg+xml', 'svg');
-    const name = `${++ctx.imageCount}${ext}`;
+    let name = `${++ctx.imageCount}${ext}`;
     const dir = path.join(ctx.outDir, 'assets', ctx.dir, ctx.slug);
     await mkdir(dir, { recursive: true });
-    const buf = Buffer.from(await res.arrayBuffer());
+    let buf = Buffer.from(await res.arrayBuffer());
+    const small = await optimize(buf, ext);
+    if (small) { console.log(`    · 이미지 최적화 ${name}: ${(buf.length / 1024) | 0}KB → ${(small.length / 1024) | 0}KB`); buf = small; name = name.replace(/\.\w+$/, '.webp'); }
     await writeFile(path.join(dir, name), buf);
     const src = `../assets/${ctx.dir}/${ctx.slug}/${name}`;
     (ctx.sizes ||= {})[src] = imgSize(buf);
