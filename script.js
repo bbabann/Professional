@@ -32,14 +32,21 @@ function initNotes() {
   document.body.appendChild(tip);
   let current = null;
 
+  // 팝업은 밑줄 텍스트의 '위쪽'에 띄워 앞으로 읽을 아래 텍스트를 가리지 않음. 가로는 커서를 따라가고, 위 공간이 부족할 때만 아래로
   const place = (x, y) => {
     tip.dataset.x = x; tip.dataset.y = y;
-    const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
-    let left = x + pad, top = y + pad;
-    if (left + w > window.innerWidth - 8) left = x - w - pad; // 오른쪽이 넘치면 커서 왼쪽에
-    if (top + h > window.innerHeight - 8) top = y - h - pad;  // 아래가 넘치면 커서 위에
-    tip.style.left = Math.max(8, left) + 'px';
-    tip.style.top = Math.max(8, top) + 'px';
+    const pad = 14, gap = 8, w = tip.offsetWidth, h = tip.offsetHeight;
+    let top = y - h - gap, bottom = y + gap;
+    if (current) { // 여러 줄로 꺾인 밑줄이면 커서가 있는 줄 기준
+      const rects = [...current.getClientRects()];
+      const r = rects.find((q) => y >= q.top - 2 && y <= q.bottom + 2) || rects[0];
+      if (r) { top = r.top - h - gap; bottom = r.bottom + gap; }
+    }
+    if (top < 8) top = bottom;
+    let left = x - w / 2;
+    left = Math.min(Math.max(8, left), window.innerWidth - w - 8);
+    tip.style.left = left + 'px';
+    tip.style.top = Math.max(8, Math.min(top, window.innerHeight - h - 8)) + 'px';
   };
   const show = (mark, x, y) => {
     current = mark;
@@ -65,7 +72,12 @@ function initNotes() {
     place(x, y);
     tip.classList.add('show');
   };
-  const hide = () => { current = null; tip.classList.remove('show'); };
+  const hide = () => {
+    const m = current;
+    current = null;
+    tip.classList.remove('show');
+    if (m && document.activeElement === m) m.blur(); // 팝업이 닫히면 밑줄 포커스도 해제
+  };
   const touchOnly = window.matchMedia('(hover: none)');
 
   marks.forEach((m) => {
