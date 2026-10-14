@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let active = null;
   // 패널이 다 열리고(slid) 새 콘텐츠가 로드(loaded)된 뒤에만 내용을 페이드인 → 여는 동안 빈 화면 유지, 레이아웃 변화 노출 없음
   let loaded = true, slid = true, slideTimer = 0;
-  const reveal = () => { if (loaded && slid) frame.classList.add('ready'); };
+  const reveal = () => { if (loaded && slid && document.body.classList.contains('split')) frame.classList.add('ready'); };
   // 정상 경로는 iframe이 보내는 embedReady 메시지. 메시지가 안 오는 경우(file:// 등)를 위해 load 후 일정 시간 뒤 폴백
   let fallback = 0;
   window.addEventListener('message', (e) => { if (e.source === frame.contentWindow && e.data && e.data.embedReady === current) { // 이전 문서가 뒤늦게 보낸 메시지는 무시(주소 비교)
@@ -169,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 이전 항목(닫혀 있는 동안 남겨 둔 내용)이 슬라이드인 중에 비치지 않도록 페이드아웃 없이 즉시 숨기고, 새 콘텐츠는 로드 후 페이드인
     loaded = false;
     clearTimeout(fallback);
+    clearTimeout(clearTimer);
     frame.style.transition = 'none';
     frame.classList.remove('ready');
     void frame.offsetWidth; // 즉시 반영
@@ -193,11 +194,22 @@ document.addEventListener('DOMContentLoaded', () => {
     panel.setAttribute('aria-hidden', 'false');
   }
 
+  let clearTimer = 0;
   function hide() {
     document.body.classList.remove('split');
     panel.setAttribute('aria-hidden', 'true');
     if (active) active.removeAttribute('aria-current');
-    active = null; // src는 유지: 닫히는 동안 내용이 비지 않고, 같은 항목을 다시 열면 재로딩 없음
+    active = null;
+    // 닫을 때 내용이 비치지 않도록 빠르게 숨기고, 다 닫히면 iframe을 비워 다음에 열 때 이전 내용이 남지 않게 함
+    frame.style.transition = 'opacity .1s ease';
+    frame.classList.remove('ready');
+    clearTimeout(clearTimer);
+    clearTimer = setTimeout(() => {
+      if (document.body.classList.contains('split')) return;
+      frame.style.transition = '';
+      loaded = false; clearTimeout(fallback); current = '';
+      try { frame.contentWindow.location.replace('about:blank'); } catch (_) { frame.removeAttribute('src'); }
+    }, 600);
   }
   // 패널을 열 때 히스토리를 한 칸만 쌓아 두어, 모바일의 뒤로가기/스와이프로도 패널이 닫히게 함.
   // ✕/Esc/같은 항목 재클릭은 히스토리를 건드리지 않고 패널만 닫는다 (남은 한 칸은 다음에 열 때 재사용).
