@@ -131,7 +131,11 @@ document.addEventListener('DOMContentLoaded', () => {
     try { actual = frame.contentWindow.location.href; } catch (_) { /* file:// 등 접근 불가 시 기억한 값 사용 */ }
     if (actual === url) return; // 같은 항목이면 재로딩 없음
     current = url;
-    frame.classList.remove('ready'); // 새 콘텐츠는 로드 후 페이드인
+    // 이전 항목(닫혀 있는 동안 남겨 둔 내용)이 슬라이드인 중에 비치지 않도록 페이드아웃 없이 즉시 숨기고, 새 콘텐츠는 로드 후 페이드인
+    frame.style.transition = 'none';
+    frame.classList.remove('ready');
+    void frame.offsetWidth; // 즉시 반영
+    frame.style.transition = '';
     try { frame.contentWindow.location.replace(url); } catch (_) { frame.src = url; }
   }
 
