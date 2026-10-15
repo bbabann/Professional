@@ -2,7 +2,7 @@
 :root{
   --background:#fff;--foreground:#09090b;
   --muted:#f4f4f5;--muted-foreground:#71717a;--prose-foreground:#27272a; /* 본문 텍스트: foreground보다 한 단계 연함 */
-  --border:#e4e4e7;--img-stroke:rgba(0,0,0,.08);--radius:.5rem;
+  --border:#e4e4e7;--radius:.5rem;
   --gutter:min(200px,max(40px,calc((var(--panel) - 640px) / 2))); /* 패널 상단 바와 본문이 공유하는 좌우 여백: 본문 폭 640px 기준으로 남는 공간을 양쪽에 분배하되 여백은 40~200px로 제한 */
   --bar-h:64px; /* 상단 내비와 패널 바가 공유하는 높이 */
   --ease:cubic-bezier(.32,.72,0,1);--dur:.45s;--panel:66.667vw; /* 패널 폭: 좌 1 : 우 2 */ /* Vaul/iOS 스타일 이징 */
@@ -11,7 +11,7 @@
 }
 html[data-font="suite"]{--font-sans:"SUITE Variable","SUITE",-apple-system,"Noto Sans KR",sans-serif}
 @media (prefers-color-scheme:dark){
-  :root{--background:#09090b;--foreground:#fafafa;--muted:#18181b;--muted-foreground:#a1a1aa;--prose-foreground:#e4e4e7;--border:#27272a;--img-stroke:rgba(255,255,255,.12)}
+  :root{--background:#09090b;--foreground:#fafafa;--muted:#18181b;--muted-foreground:#a1a1aa;--prose-foreground:#e4e4e7;--border:#27272a}
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -67,7 +67,6 @@ p{margin:0 0 16px}
 .prose code{background:var(--muted);border-radius:4px;padding:2px 6px;font-size:.88em}
 .prose pre{background:var(--muted);border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow:auto}
 .prose img{display:block;max-width:100%;height:auto;margin:0 auto} /* 인라인 이미지 아래의 미세한 틈 제거 */
-.prose .ph,.prose figure>img{outline:1px solid var(--img-stroke);outline-offset:-1px} /* 이미지마다 아주 연한 1px 스트로크(이미지 위에 안쪽으로 그려 크기 불변) */
 .prose .ph{display:block;margin:0 auto;background:var(--muted);transition:background-color .3s ease} /* 로드 전 그레이 스켈레톤(영역은 width/height로 확보) */
 .prose .ph img{width:100%}
 .js .prose .ph img{opacity:0;transition:opacity .3s ease}
