@@ -8,13 +8,13 @@ const motionOK = !window.matchMedia('(prefers-reduced-motion: reduce)').matches 
 if (motionOK) document.documentElement.classList.add('js-motion');
 
 
-// 제목 reveal: 제목은 마스크 안에서 올라오고, 날짜/첫 문단은 순서대로 페이드업
+// 제목 reveal: 제목은 마스크 안에서 올라오고, 메타는 페이드업 (본문 첫 줄은 처음부터 고정 노출)
 function initReveal() {
   if (!motionOK) return;
   const h1 = document.querySelector('.article-head h1');
   if (!h1) return;
   h1.innerHTML = '<span class="mask"><span class="rise">' + h1.innerHTML + '</span></span>';
-  const targets = [h1, document.querySelector('.article-head .meta'), document.querySelector('.prose > *')].filter(Boolean);
+  const targets = [h1, document.querySelector('.article-head .meta')].filter(Boolean);
   targets.forEach((el, i) => { el.classList.add('rv'); el.style.setProperty('--i', i); });
   const io = new IntersectionObserver((entries) => {
     entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
