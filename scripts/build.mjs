@@ -66,12 +66,12 @@ async function writePages(items, templateFile, dir, siteTitle, metaOf) {
 }
 const tags = (p) => p.tags.map((t) => `<span class="badge">${esc(t)}</span>`).join('');
 await writePages(posts, 'article.html', 'posts', '류서환', (p) => `<span>${p.date}</span>${tags(p)}<span>${p.minutes} min read</span>`);
-await writePages(works, 'project.html', 'work', '류서환', (p) => `<span>${p.year}</span>${p.role ? `<span>${esc(p.role)}</span>` : ''}${tags(p)}`);
+await writePages(works, 'project.html', 'work', '류서환', (p) => `${p.client ? `<span>${esc(p.client)}</span>` : ''}<span>${p.year}</span>${p.role ? `<span>${esc(p.role)}</span>` : ''}${tags(p)}`);
 
 // 목록: 글 페이지=전체 글, 홈=최신 글 3개 + 전체 프로젝트
 const emptyOf = (msg) => `\n        <p class="empty" style="padding:14px 0">${msg}</p>\n      `;
 const workRows = (items) => items.map((p) =>
-  `\n        <a class="row" href="work/${encodeURIComponent(p.slug)}.html" data-panel><span class="title">${esc(p.title)}${p.summary ? `<span class="desc">${esc(p.summary)}</span>` : ''}</span><span class="meta">${[p.role, p.year].filter(Boolean).map(esc).join(' · ')}</span>${ARROW}</a>`).join('') + '\n      ';
+  `\n        <a class="row" href="work/${encodeURIComponent(p.slug)}.html" data-panel><span class="title">${esc(p.title)}${p.summary ? `<span class="desc">${esc(p.summary)}</span>` : ''}</span><span class="meta">${[p.client, p.role, p.year].filter(Boolean).map(esc).join(' · ')}</span>${ARROW}</a>`).join('') + '\n      ';
 
 let h = await readFile(`${OUT}/writing.html`, 'utf8');
 await writeFile(`${OUT}/writing.html`, fill(h, 'posts', posts.length ? rows(posts) : emptyOf('아직 글이 없습니다.')));

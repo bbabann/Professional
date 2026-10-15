@@ -22,6 +22,7 @@ HTML/CSS 정적 사이트 (shadcn 톤, 텍스트 중심). Notion 데이터베이
    | `Published` | Checkbox | **체크된 글만 게시** |
    | `Summary` | Text | (선택) 요약 → 글은 meta description, 프로젝트는 목록의 한 줄 설명 |
    | `Type` | Select | `Work` = 프로젝트(홈 Work 섹션), 비우거나 `Article` = 글(Writing) |
+   | `Client` | Text 또는 Select | (선택) 클라이언트 이름 → 목록(`클라이언트 · 역할 · 연도`)과 상세에 표시 |
    | `Role` | Text | (선택) 프로젝트에서 맡은 역할 → 목록과 상세에 표시 |
 
 3. 데이터베이스 페이지 우측 상단 `···` → **연결(Connections)** → 만든 통합 추가.

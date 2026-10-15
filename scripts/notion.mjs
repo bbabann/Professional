@@ -6,7 +6,7 @@ const API = process.env.NOTION_API_BASE || 'https://api.notion.com/v1';
 const VERSION = '2022-06-28';
 
 // 데이터베이스 속성 이름 (Notion에서 만든 이름과 맞춰야 함. 제목 속성은 타입으로 자동 탐지)
-export const PROPS = { slug: 'Slug', date: 'Date', tags: 'Tags', published: 'Published', summary: 'Summary', type: 'Type', role: 'Role' };
+export const PROPS = { slug: 'Slug', date: 'Date', tags: 'Tags', published: 'Published', summary: 'Summary', type: 'Type', role: 'Role', client: 'Client' };
 
 async function api(token, route, body) {
   const res = await fetch(API + route, {
@@ -305,6 +305,7 @@ export async function fetchPosts({ token, databaseId, outDir }) {
     posts.push({
       type, title, slug, dateIso, date: fmtDate(dateIso), year: String(new Date(dateIso).getUTCFullYear()),
       role: plain(pr[PROPS.role]?.rich_text),
+      client: plain(pr[PROPS.client]?.rich_text) || pr[PROPS.client]?.select?.name || '', // 텍스트/선택 속성 모두 지원
       tags: (pr[PROPS.tags]?.multi_select || []).map((x) => x.name),
       summary: plain(pr[PROPS.summary]?.rich_text),
       minutes: Math.max(1, Math.round(words / 500)), // 한글 기준 대략 분당 500자
