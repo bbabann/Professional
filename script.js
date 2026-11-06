@@ -1,3 +1,19 @@
+// 편집 모드(?edit=1 로 한 번 켜 두면 그 브라우저에서만 유지, ?edit=0 으로 끔): 수정 요청 위젯을 불러옴. 방문자에게는 로드되지 않음.
+(() => {
+  const src = document.currentScript && document.currentScript.src;
+  try {
+    const q = new URLSearchParams(location.search).get('edit');
+    if (q === '1') localStorage.setItem('edit-mode', '1');
+    if (q === '0') localStorage.removeItem('edit-mode');
+    if (src && localStorage.getItem('edit-mode') === '1') {
+      const u = new URL('edit-widget.js', src);
+      u.search = new URL(src).search;
+      const s = document.createElement('script');
+      s.src = u.href;
+      document.head.appendChild(s);
+    }
+  } catch (_) { /* 저장소 접근 불가 시 무시 */ }
+})();
 // embed 모드(패널 안에서 열린 페이지)면 내비/푸터를 숨김. 깜빡임 방지를 위해 <head>에서 즉시 실행
 if (new URLSearchParams(location.search).has('embed')) document.documentElement.classList.add('embed');
 
