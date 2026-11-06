@@ -116,6 +116,81 @@ function initNotes() {
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
 }
 
+// 프로젝트 목록 호버 썸네일: 마우스를 올린 프로젝트의 상세 페이지 첫 이미지를 마우스 옆에 미리보기로 띄움.
+// PC 마우스(hover: hover + pointer: fine)에서만 동작. 터치 기기에서는 만들지도 않음. 상세 페이지는 처음 올릴 때 한 번만 읽어 캐시.
+function initThumbs() {
+  const rows = document.querySelectorAll('a.row[href^="work/"]');
+  const pcMouse = window.matchMedia('(hover: hover) and (pointer: fine)');
+  if (!rows.length || !pcMouse.matches) return;
+
+  const tip = document.createElement('div');
+  tip.className = 'thumb-tip';
+  tip.setAttribute('aria-hidden', 'true');
+  const img = document.createElement('img');
+  img.alt = '';
+  tip.appendChild(img);
+  document.body.appendChild(tip);
+
+  // href → Promise<{ src, w, h } | null>. 상세 페이지의 첫 이미지를 찾고, 크기를 알기 위해 미리 받아 둠
+  const cache = new Map();
+  const firstImage = (href) => {
+    if (!cache.has(href)) {
+      const page = new URL(href, location.href);
+      cache.set(href, fetch(page.href)
+        .then((r) => (r.ok ? r.text() : ''))
+        .then((html) => {
+          const el = html && new DOMParser().parseFromString(html, 'text/html').querySelector('.prose img');
+          const s = el && el.getAttribute('src');
+          if (!s) return null;
+          const src = new URL(s, page).href; // 상세 페이지 기준 상대경로(../assets/...)를 풀어 줌
+          return new Promise((resolve) => {
+            const im = new Image();
+            im.onload = () => resolve({ src, w: im.naturalWidth, h: im.naturalHeight });
+            im.onerror = () => resolve(null);
+            im.src = src;
+          });
+        })
+        .catch(() => null));
+    }
+    return cache.get(href);
+  };
+
+  let current = null, token = 0, mx = 0, my = 0;
+  const place = (x, y) => {
+    const gap = 18, pad = 8, w = tip.offsetWidth, h = tip.offsetHeight;
+    let left = x + gap, top = y + gap;
+    if (left + w > window.innerWidth - pad) left = x - gap - w; // 오른쪽 공간이 모자라면 커서 왼쪽에
+    if (top + h > window.innerHeight - pad) top = window.innerHeight - h - pad;
+    tip.style.transform = 'translate(' + Math.max(pad, left) + 'px,' + Math.max(pad, top) + 'px)';
+  };
+  const hide = () => { current = null; token++; tip.classList.remove('show'); };
+
+  rows.forEach((row) => {
+    row.addEventListener('pointerenter', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      current = row;
+      mx = e.clientX; my = e.clientY;
+      const t = ++token;
+      firstImage(row.getAttribute('href')).then((d) => {
+        if (!d || current !== row || token !== t) return; // 그 사이 다른 항목으로 옮겼거나 이미지가 없음
+        tip.style.aspectRatio = d.w + ' / ' + d.h; // 이미지가 뜨기 전에 높이가 정해지도록
+        img.src = d.src;
+        place(mx, my);
+        tip.classList.add('show');
+      });
+    });
+    row.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      mx = e.clientX; my = e.clientY;
+      if (current === row && tip.classList.contains('show')) place(mx, my);
+    });
+    row.addEventListener('pointerleave', () => { if (current === row) hide(); });
+    row.addEventListener('pointerdown', hide); // 클릭해서 패널이 열리면 미리보기는 닫음
+  });
+  document.addEventListener('scroll', hide, { passive: true, capture: true });
+  window.addEventListener('blur', hide);
+}
+
 function initCompare(stage) {
   const fig = stage.parentElement;
   let dragging = false;
@@ -145,6 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.compare-stage').forEach(initCompare);
   initReveal();
   initNotes();
+  initThumbs();
   if (document.documentElement.classList.contains('embed')) {
     // 패널 안: 이미지는 width/height로 영역이 미리 잡혀 그레이 스켈레톤으로 보이고, 로드되면 페이드인. 맨 위 2장은 지연 로딩 없이 바로 받음
     document.querySelectorAll('.prose img').forEach((img, i) => { if (i < 2) img.loading = 'eager'; });
