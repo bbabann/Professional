@@ -1,0 +1,38 @@
+name: Claude Site Editor
+
+# 이슈나 코멘트에 @claude 가 들어 있으면 Claude가 코드를 수정하고 PR을 엽니다.
+# 저장소 주인(bbabann)이 쓴 것만 처리합니다. (공개 저장소라 다른 사람의 요청은 무시)
+
+on:
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+
+jobs:
+  claude:
+    if: >-
+      github.event.sender.login == 'bbabann' &&
+      (
+        (github.event_name == 'issues' && contains(github.event.issue.body, '@claude')) ||
+        (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude'))
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Claude 구독(Pro/Max)으로 쓰려면 위 줄 대신 아래 줄을 쓰고, 시크릿 CLAUDE_CODE_OAUTH_TOKEN 을 등록하세요.
+          # claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --max-turns 15
+            --allowedTools "Bash(node scripts/build.mjs)"
